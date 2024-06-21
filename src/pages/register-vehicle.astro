@@ -1,0 +1,30 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Input from '../components/Input.astro';
+---
+
+<Layout>
+  <Header />
+  <main class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold">Registra tu Vehículo</h1>
+    <form class="mt-8 space-y-4">
+      
+      <input type="text" placeholder="Marca" class="border p-2 w-full rounded"/>
+      <input type="text" placeholder="Modelo" class="border p-2 w-full rounded"/>
+      <input type="text" placeholder="Año" class="border p-2 w-full rounded"/>
+      <input type="text" placeholder="Precio" class="border p-2 w-full rounded"/>
+      <select class="border p-2 w-full rounded">
+        <option>Vendido</option>
+        <option>Disponible</option>
+        <option>En Negociación</option>
+        <option>Disponible para Permuta</option>
+      </select>
+      <textarea placeholder="Descripción" class="border p-2 w-full rounded"></textarea>
+      <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded">Registrar Vehículo</button>
+    </form>
+  </main>
+  
+  <Footer />
+</Layout>

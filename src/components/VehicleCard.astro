@@ -1,0 +1,24 @@
+---
+import VehicleOptions from './VehicleOptions.astro';
+
+export interface Props {
+  vehicle: {
+    name: string;
+    description: string;
+    imageUrl: string;
+  };
+}
+
+const { vehicle } = Astro.props;
+---
+
+<div class="border rounded-lg overflow-hidden shadow hover:shadow-lg transition-shadow duration-200">
+    <h3 class="text-xl content-end font-bold m-0">
+        <VehicleOptions></VehicleOptions>  
+    </h3>
+<img src={vehicle.imageUrl} alt={vehicle.name} class="w-full h-48 object-cover" />
+  <div class="p-4">
+    <h3 class="text-xl font-bold mb-2">{vehicle.name}</h3>
+    <p class="text-gray-600">{vehicle.description}</p>
+  </div>
+</div>

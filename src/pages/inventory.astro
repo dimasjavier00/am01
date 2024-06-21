@@ -1,0 +1,21 @@
+---
+import Base from '../layouts/Base.astro';
+import VehicleCard from '../components/VehicleCard.astro';
+
+const title = "Inventario de Vehículos";
+
+// Ejemplo de datos de vehículos
+const vehicles = [
+  { name: "Vehículo 1", description: "Descripción del vehículo 1", imageUrl: "https://images.wallpaperscraft.com/image/single/nissan_cars_sports_96269_1440x900.jpg" },
+  { name: "Vehículo 2", description: "Descripción del vehículo 2", imageUrl: "https://images.wallpaperscraft.com/image/single/nissan_cars_sports_96269_1440x900.jpg" },
+  { name: "Vehículo 3", description: "Descripción del vehículo 3", imageUrl: "https://images.wallpaperscraft.com/image/single/nissan_cars_sports_96269_1440x900.jpg" }
+];
+---
+
+<Base title={title}>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+    {vehicles.map(vehicle => (
+      <VehicleCard vehicle={vehicle} />
+    ))}
+  </div>
+</Base>
