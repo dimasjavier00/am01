@@ -1,0 +1,387 @@
+---
+import Panel from '../../layouts/Panel.astro';
+import Icon from '../../components/Icon.astro';
+import { brands, types, fuels, cities } from '../../data/vehicles';
+
+const years = Array.from({ length: 2027 - 1995 }, (_, i) => 2026 - i);
+const steps = ['Datos básicos', 'Detalles', 'Fotos', 'Precio y publicación'];
+const featureOptions = [
+  'Aire acondicionado', 'Cámara de reversa', 'Sensores de parqueo', 'Apple CarPlay / Android Auto', 'Bluetooth',
+  'Asientos en cuero', 'Techo corredizo', 'Control crucero', 'Rines de aluminio', 'Tracción 4x4', 'Faros LED', 'Arranque sin llave',
+];
+---
+<Panel title="Publicar vehículo" heading="Publicar vehículo" subtitle="Completa los 4 pasos para publicar tu anuncio">
+  <div class="grid gap-6 xl:grid-cols-[1fr_340px]">
+    <form data-wizard class="card overflow-hidden" novalidate>
+      <!-- Progreso -->
+      <ol class="grid grid-cols-4 border-b border-line bg-surface" aria-label="Pasos">
+        {steps.map((s, i) => (
+          <li data-step-tab={i} class="relative flex flex-col items-center gap-1 px-2 py-4 text-center text-xs text-muted data-[state=active]:text-navy data-[state=done]:text-teal-deep">
+            <span class="grid size-8 place-items-center rounded-full border-2 border-current font-bold">{i + 1}</span>
+            <span class="hidden font-condensed font-bold sm:block">{s}</span>
+          </li>
+        ))}
+      </ol>
+
+      <div class="p-6 sm:p-8">
+        <!-- Paso 1 -->
+        <fieldset data-step="0" class="space-y-5">
+          <legend class="text-lg font-bold text-navy">¿Qué vehículo vendes?</legend>
+          <div>
+            <span class="label">Tipo de vehículo</span>
+            <div class="grid grid-cols-3 gap-2 sm:grid-cols-6">
+              {types.map((t, i) => (
+                <label class="cursor-pointer">
+                  <input type="radio" name="type" value={t} class="peer sr-only" checked={i === 0} />
+                  <span class="block rounded-xl border border-line px-2 py-3 text-center text-sm transition peer-checked:border-teal peer-checked:bg-teal-50 peer-checked:font-medium peer-checked:text-teal-deep peer-focus-visible:ring-2 peer-focus-visible:ring-teal">{t}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label for="brand" class="label">Marca</label>
+              <input id="brand" name="brand" list="brand-list" class="input" required placeholder="Ej. Toyota" />
+              <datalist id="brand-list">{[...brands, 'Honda', 'Kia', 'Mazda', 'Mitsubishi', 'Isuzu', 'Suzuki'].sort().map((b) => <option value={b} />)}</datalist>
+              <p class="field-error">Indica la marca.</p>
+            </div>
+            <div>
+              <label for="model" class="label">Modelo</label>
+              <input id="model" name="model" class="input" required placeholder="Ej. Hilux" />
+              <p class="field-error">Indica el modelo.</p>
+            </div>
+            <div>
+              <label for="version" class="label">Versión <span class="font-normal text-muted">(opcional)</span></label>
+              <input id="version" name="version" class="input" placeholder="Ej. SR 4x4 Diésel" />
+            </div>
+            <div>
+              <label for="year" class="label">Año</label>
+              <select id="year" name="year" class="input" required>{years.map((y) => <option selected={y === 2020}>{y}</option>)}</select>
+            </div>
+          </div>
+          <fieldset>
+            <legend class="label">Condición</legend>
+            <div class="flex gap-4">
+              {['Usado', 'Nuevo'].map((c, i) => <label class="flex items-center gap-2 text-sm"><input type="radio" name="condition" value={c} checked={i === 0} class="accent-teal" />{c}</label>)}
+            </div>
+          </fieldset>
+        </fieldset>
+
+        <!-- Paso 2 -->
+        <fieldset data-step="1" class="hidden space-y-5">
+          <legend class="text-lg font-bold text-navy">Detalles técnicos</legend>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label for="km" class="label">Kilometraje</label>
+              <div class="relative"><input id="km" name="km" type="number" min="0" inputmode="numeric" class="input pr-12" required placeholder="45000" /><span class="absolute inset-y-0 right-3 grid place-items-center text-sm text-muted">km</span></div>
+              <p class="field-error">Indica el kilometraje (0 si es nuevo).</p>
+            </div>
+            <div>
+              <label for="color" class="label">Color</label>
+              <input id="color" name="color" class="input" required placeholder="Ej. Blanco perla" />
+              <p class="field-error">Indica el color.</p>
+            </div>
+            <div>
+              <label for="transmission" class="label">Transmisión</label>
+              <select id="transmission" name="transmission" class="input"><option>Automática</option><option>Manual</option></select>
+            </div>
+            <div>
+              <label for="fuel" class="label">Combustible</label>
+              <select id="fuel" name="fuel" class="input">{fuels.map((f) => <option>{f}</option>)}</select>
+            </div>
+            <div>
+              <label for="engine" class="label">Motor <span class="font-normal text-muted">(opcional)</span></label>
+              <input id="engine" name="engine" class="input" placeholder="Ej. 2.4 L Turbo diésel" />
+            </div>
+            <div>
+              <label for="drivetrain" class="label">Tracción</label>
+              <select id="drivetrain" name="drivetrain" class="input"><option>Delantera</option><option>Trasera</option><option>4x4</option><option>AWD</option></select>
+            </div>
+            <div>
+              <label for="doors" class="label">Puertas</label>
+              <select id="doors" name="doors" class="input">{[2, 3, 4, 5].map((n) => <option selected={n === 4}>{n}</option>)}</select>
+            </div>
+            <div>
+              <label for="seats" class="label">Asientos</label>
+              <select id="seats" name="seats" class="input">{[2, 4, 5, 7, 8].map((n) => <option selected={n === 5}>{n}</option>)}</select>
+            </div>
+          </div>
+          <fieldset>
+            <legend class="label">Equipamiento</legend>
+            <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {featureOptions.map((f) => <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="features" value={f} class="check" />{f}</label>)}
+            </div>
+          </fieldset>
+        </fieldset>
+
+        <!-- Paso 3 -->
+        <fieldset data-step="2" class="hidden space-y-5">
+          <legend class="text-lg font-bold text-navy">Fotos del vehículo</legend>
+          <p class="text-sm text-muted">Las publicaciones con 8 o más fotos reciben hasta 4 veces más consultas. La primera foto será la portada.</p>
+          <label data-drop class="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-teal/40 bg-teal-50/50 px-6 py-10 text-center transition hover:border-teal data-[over=true]:border-teal data-[over=true]:bg-teal-50">
+            <span class="grid size-12 place-items-center rounded-full bg-white text-teal shadow-sm"><Icon name="upload" /></span>
+            <span class="font-display font-bold text-navy">Arrastra tus fotos aquí o haz clic para elegirlas</span>
+            <span class="text-xs text-muted">JPG o PNG · hasta 10 fotos</span>
+            <input type="file" accept="image/*" multiple class="sr-only" data-files />
+          </label>
+          <ul data-previews class="grid grid-cols-3 gap-3 sm:grid-cols-5"></ul>
+          <p data-photo-error class="field-error">Agrega al menos una foto o usa una foto de ejemplo.</p>
+          <button type="button" data-sample class="text-sm font-medium text-teal hover:underline">¿Solo estás probando? Usar una foto de ejemplo</button>
+        </fieldset>
+
+        <!-- Paso 4 -->
+        <fieldset data-step="3" class="hidden space-y-5">
+          <legend class="text-lg font-bold text-navy">Precio y publicación</legend>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label for="price" class="label">Precio</label>
+              <div class="flex"><span class="grid place-items-center rounded-l-lg border border-r-0 border-line bg-surface px-3 text-sm text-muted">L</span><input id="price" name="price" type="number" min="10000" step="1000" inputmode="numeric" class="input rounded-l-none" required placeholder="650000" /></div>
+              <p class="field-error">Ingresa un precio válido (mínimo L 10,000).</p>
+              <p class="mt-1 text-xs text-muted" data-price-hint></p>
+            </div>
+            <div>
+              <label for="city" class="label">Ciudad</label>
+              <select id="city" name="city" class="input">{cities.map((c) => <option>{c}</option>)}</select>
+            </div>
+            <div>
+              <label for="status" class="label">Estado de la publicación</label>
+              <select id="status" name="status" class="input"><option>Disponible</option><option>Disponible para permuta</option><option>En negociación</option></select>
+            </div>
+            <label class="flex items-center gap-3 self-end rounded-xl border border-line p-3 text-sm">
+              <input type="checkbox" name="featured" class="check" />
+              <span><span class="font-medium">Destacar 7 días</span><span class="block text-xs text-muted">Usa 1 de tus 3 destacados del mes</span></span>
+            </label>
+          </div>
+          <div>
+            <label for="description" class="label">Descripción</label>
+            <textarea id="description" name="description" rows="5" maxlength="800" class="input resize-y" placeholder="Cuenta el historial, mantenimientos, estado de llantas, si aceptas permuta…"></textarea>
+            <p class="mt-1 text-right text-xs text-muted"><span data-chars>0</span>/800</p>
+          </div>
+        </fieldset>
+      </div>
+
+      <div class="flex items-center justify-between gap-3 border-t border-line bg-surface px-6 py-4 sm:px-8">
+        <button type="button" data-prev class="btn-ghost invisible"><Icon name="arrow-left" class="size-4" />Atrás</button>
+        <div class="flex gap-2">
+          <button type="button" data-draft class="btn-ghost hidden sm:inline-flex">Guardar borrador</button>
+          <button type="button" data-next class="btn-primary">Continuar <Icon name="arrow-right" class="size-4" /></button>
+          <button type="submit" data-submit class="btn-accent hidden"><Icon name="check" class="size-4" />Publicar ahora</button>
+        </div>
+      </div>
+    </form>
+
+    <!-- Vista previa -->
+    <aside class="xl:sticky xl:top-24 xl:self-start">
+      <p class="mb-3 font-condensed text-sm font-bold uppercase tracking-widest text-muted">Vista previa del anuncio</p>
+      <div data-preview></div>
+      <div class="mt-4 rounded-2xl border border-navy/10 bg-navy-50 p-4 text-sm text-ink/80">
+        <p class="flex items-center gap-2 font-display font-bold text-navy"><Icon name="info" class="size-4" />Consejos</p>
+        <ul class="mt-2 list-disc space-y-1 pl-5">
+          <li>Fotos con luz natural y fondo despejado.</li>
+          <li>Precio realista: compara con anuncios similares.</li>
+          <li>Responde rápido: los compradores valoran la atención.</li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+</Panel>
+
+<script>
+  import { inventory, toast, slugify, type InventoryItem } from '../../lib/store';
+  import { vehicles, type ListingStatus } from '../../data/vehicles';
+  import { vehicleCard } from '../../lib/cards';
+  import { money } from '../../lib/format';
+
+  const form = document.querySelector<HTMLFormElement>('[data-wizard]')!;
+  const stepsEls = [...form.querySelectorAll<HTMLElement>('[data-step]')];
+  const tabs = [...form.querySelectorAll<HTMLElement>('[data-step-tab]')];
+  const prev = form.querySelector<HTMLButtonElement>('[data-prev]')!;
+  const next = form.querySelector<HTMLButtonElement>('[data-next]')!;
+  const submit = form.querySelector<HTMLButtonElement>('[data-submit]')!;
+  const previews = form.querySelector<HTMLElement>('[data-previews]')!;
+  const SAMPLE = '/img/cars/photo-1621007947382-bb3c3994e3fb.webp';
+  let step = 0;
+  let photos: string[] = [];
+
+  const editId = new URLSearchParams(location.search).get('id');
+  const editing = editId ? inventory.get(editId) : undefined;
+
+  /* ---------- Precarga en modo edición ---------- */
+  if (editing) {
+    document.querySelector('header h1')!.textContent = `Editar ${editing.brand} ${editing.model}`;
+    const set = (name: string, value: string | number) => {
+      form.querySelectorAll<HTMLInputElement>(`[name="${name}"]`).forEach((el) => {
+        if (el.type === 'radio' || el.type === 'checkbox') el.checked = el.value === String(value);
+        else el.value = String(value);
+      });
+    };
+    (['type', 'brand', 'model', 'version', 'year', 'condition', 'km', 'color', 'transmission', 'fuel', 'engine', 'drivetrain', 'doors', 'seats', 'price', 'city', 'description'] as const).forEach((k) => set(k, editing[k] as string | number));
+    if (['Disponible', 'Disponible para permuta', 'En negociación'].includes(editing.status)) set('status', editing.status);
+    form.querySelectorAll<HTMLInputElement>('[name="features"]').forEach((el) => (el.checked = editing.features.includes(el.value)));
+    (form.querySelector('[name="featured"]') as HTMLInputElement).checked = !!editing.featured;
+    photos = [editing.image];
+    submit.innerHTML = 'Guardar cambios';
+  }
+
+  /* ---------- Navegación entre pasos ---------- */
+  function validate(i: number) {
+    let ok = true;
+    stepsEls[i].querySelectorAll<HTMLInputElement>('[required]').forEach((input) => {
+      let valid = input.checkValidity() && String(input.value).trim() !== '';
+      input.setAttribute('aria-invalid', String(!valid));
+      input.closest('div:has(> .field-error)')?.querySelector(':scope > .field-error')?.classList.toggle('is-visible', !valid);
+      if (!valid) ok = false;
+    });
+    if (i === 2) {
+      const valid = photos.length > 0;
+      form.querySelector('[data-photo-error]')!.classList.toggle('is-visible', !valid);
+      if (!valid) ok = false;
+    }
+    if (!ok) stepsEls[i].querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+    return ok;
+  }
+  function show(i: number, scroll = true) {
+    step = i;
+    stepsEls.forEach((el, n) => el.classList.toggle('hidden', n !== i));
+    tabs.forEach((t, n) => (t.dataset.state = n < i ? 'done' : n === i ? 'active' : ''));
+    prev.classList.toggle('invisible', i === 0);
+    next.classList.toggle('hidden', i === stepsEls.length - 1);
+    submit.classList.toggle('hidden', i !== stepsEls.length - 1);
+    if (scroll) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  next.addEventListener('click', () => validate(step) && show(step + 1));
+  prev.addEventListener('click', () => show(step - 1));
+
+  /* ---------- Fotos ---------- */
+  function renderPhotos() {
+    previews.innerHTML = photos
+      .map(
+        (src, i) => `<li class="group relative aspect-[4/3] overflow-hidden rounded-xl bg-surface">
+          <img src="${src}" alt="Foto ${i + 1}" class="size-full object-cover" />
+          ${i === 0 ? '<span class="absolute left-1.5 top-1.5 chip bg-teal text-white">Portada</span>' : ''}
+          <button type="button" data-remove-photo="${i}" class="absolute right-1.5 top-1.5 grid size-7 place-items-center rounded-full bg-white/95 text-fuchsia shadow" aria-label="Quitar foto ${i + 1}">×</button>
+        </li>`,
+      )
+      .join('');
+    renderPreview();
+  }
+  // Reduce las fotos para que quepan en el almacenamiento del navegador.
+  const shrink = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, 1000 / img.width);
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * scale);
+        c.height = Math.round(img.height * scale);
+        c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(img.src);
+        resolve(c.toDataURL('image/jpeg', 0.72));
+      };
+      img.onerror = reject;
+      img.src = URL.createObjectURL(file);
+    });
+  async function addFiles(files: FileList | File[]) {
+    const list = [...files].filter((f) => f.type.startsWith('image/')).slice(0, 10 - photos.length);
+    for (const f of list) {
+      try { photos.push(await shrink(f)); } catch { toast(`No se pudo leer ${f.name}`, 'warn'); }
+    }
+    renderPhotos();
+    form.querySelector('[data-photo-error]')!.classList.remove('is-visible');
+  }
+  form.querySelector<HTMLInputElement>('[data-files]')!.addEventListener('change', (e) => addFiles((e.target as HTMLInputElement).files!));
+  const drop = form.querySelector<HTMLElement>('[data-drop]')!;
+  drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.dataset.over = 'true'; });
+  drop.addEventListener('dragleave', () => (drop.dataset.over = 'false'));
+  drop.addEventListener('drop', (e) => { e.preventDefault(); drop.dataset.over = 'false'; addFiles(e.dataTransfer!.files); });
+  previews.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-remove-photo]');
+    if (!b) return;
+    photos.splice(Number(b.dataset.removePhoto), 1);
+    renderPhotos();
+  });
+  form.querySelector('[data-sample]')!.addEventListener('click', () => {
+    if (!photos.includes(SAMPLE)) photos.push(SAMPLE);
+    renderPhotos();
+    form.querySelector('[data-photo-error]')!.classList.remove('is-visible');
+  });
+
+  /* ---------- Vista previa en vivo ---------- */
+  function build(status?: ListingStatus): InventoryItem {
+    const fd = new FormData(form);
+    const g = (k: string) => String(fd.get(k) ?? '').trim();
+    const brand = g('brand') || 'Marca';
+    const model = g('model') || 'Modelo';
+    const year = Number(g('year')) || 2020;
+    return {
+      ...(editing ?? {}),
+      id: editing?.id ?? `${slugify(`${brand}-${model}-${year}`)}-${Date.now().toString(36)}`,
+      brand, model, year,
+      version: g('version') || '—',
+      type: g('type') as InventoryItem['type'],
+      condition: g('condition') as InventoryItem['condition'],
+      km: Number(g('km')) || 0,
+      color: g('color') || '—',
+      transmission: g('transmission') as InventoryItem['transmission'],
+      fuel: g('fuel') as InventoryItem['fuel'],
+      engine: g('engine'),
+      drivetrain: g('drivetrain'),
+      doors: Number(g('doors')),
+      seats: Number(g('seats')),
+      price: Number(g('price')) || 0,
+      city: g('city'),
+      status: status ?? (g('status') as ListingStatus),
+      featured: fd.get('featured') === 'on',
+      description: g('description'),
+      features: fd.getAll('features').map(String),
+      image: photos[0] ?? SAMPLE,
+      sellerId: 'motores-del-valle',
+      postedDaysAgo: 0,
+      views: editing?.views ?? 0,
+      leads: editing?.leads ?? 0,
+      published: status !== 'Borrador',
+      createdAt: editing?.createdAt ?? Date.now(),
+      local: editing ? editing.local : true,
+    };
+  }
+  const preview = document.querySelector<HTMLElement>('[data-preview]')!;
+  function renderPreview() {
+    preview.innerHTML = vehicleCard({ ...build(), local: true }).replace(/href="[^"]*"/, 'href="#preview"');
+    // Sugerencia de precio según vehículos similares del catálogo
+    const v = build();
+    const similar = vehicles.filter((x) => x.type === v.type && Math.abs(x.year - v.year) <= 3);
+    const hint = document.querySelector('[data-price-hint]')!;
+    if (similar.length) {
+      const prices = similar.map((x) => x.price).sort((a, b) => a - b);
+      hint.textContent = `Similares (${v.type}, ${v.year - 3}–${v.year + 3}): ${money(prices[0])} – ${money(prices[prices.length - 1])}`;
+    } else hint.textContent = '';
+  }
+  form.addEventListener('input', renderPreview);
+  form.querySelector('#description')!.addEventListener('input', (e) => (form.querySelector('[data-chars]')!.textContent = String((e.target as HTMLTextAreaElement).value.length)));
+
+  /* ---------- Guardar ---------- */
+  function save(status?: ListingStatus) {
+    try {
+      const item = build(status);
+      inventory.upsert(item);
+      return item;
+    } catch {
+      toast('No hay espacio suficiente en el navegador para las fotos. Prueba con menos imágenes.', 'warn');
+      return null;
+    }
+  }
+  form.querySelector('[data-draft]')!.addEventListener('click', () => {
+    if (save('Borrador')) { toast('Borrador guardado'); setTimeout(() => (location.href = '/panel/inventario/?estado=Borrador'), 600); }
+  });
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    for (let i = 0; i < stepsEls.length; i++) if (!validate(i)) return show(i);
+    if (save()) {
+      toast(editing ? 'Cambios guardados' : '¡Tu vehículo ya está publicado!');
+      setTimeout(() => (location.href = '/panel/inventario/'), 700);
+    }
+  });
+
+  renderPhotos();
+  show(0, false);
+</script>

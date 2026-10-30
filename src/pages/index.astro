@@ -1,14 +1,244 @@
 ---
-
-
 import Base from '../layouts/Base.astro';
-import Introduction from '../components/Introduction.astro'
+import Icon from '../components/Icon.astro';
+import Isotipo from '../components/Isotipo.astro';
+import { vehicles, types, brands } from '../data/vehicles';
+import { vehicleCard } from '../lib/cards';
+import type { IconName } from '../lib/icons';
 
-import Layout from '../layouts/Layout.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
+const featured = vehicles.filter((v) => v.featured).slice(0, 6);
+const countBy = (t: string) => vehicles.filter((v) => v.type === t).length;
+const typeIcon: Record<string, IconName> = { Sedán: 'car', SUV: 'car', Hatchback: 'car', Coupé: 'car', Deportivo: 'zap', Moto: 'gauge' };
+
+const steps = {
+  buyers: [
+    ['search', 'Busca y compara', 'Filtra por marca, precio, año, combustible o ciudad y guarda tus favoritos.'],
+    ['shield', 'Verifica la información', 'Fichas completas, vendedores verificados e historial de cada publicación.'],
+    ['chat', 'Contacta y negocia', 'Escribe al vendedor, agenda una prueba de manejo o propone una permuta.'],
+  ],
+  sellers: [
+    ['upload', 'Publica en minutos', 'Sube fotos, datos y precio desde tu panel. Tu anuncio sale al instante.'],
+    ['list', 'Administra tu inventario', 'Marca vehículos como vendidos, en negociación o disponibles para permuta.'],
+    ['chart', 'Mide tus resultados', 'Reportes de vistas, consultas y ventas para decidir con datos.'],
+  ],
+} as const;
+
+const benefits = [
+  { icon: 'list', title: 'Gestión de inventario', text: 'Registra y administra todo tu inventario desde una interfaz clara, en computadora o celular.', who: 'Vendedores' },
+  { icon: 'trending', title: 'Visibilidad y alcance', text: 'Destaca tus vehículos con planes premium y llega a miles de compradores activos.', who: 'Vendedores' },
+  { icon: 'chart', title: 'Herramientas de análisis', text: 'Reportes de vistas, contactos y ventas por vehículo para optimizar precios.', who: 'Vendedores' },
+  { icon: 'sliders', title: 'Búsqueda personalizada', text: 'Filtros avanzados para encontrar exactamente el vehículo que necesitas.', who: 'Compradores' },
+  { icon: 'info', title: 'Información detallada', text: 'Fichas técnicas completas y actualizadas sobre el estado de cada vehículo.', who: 'Compradores' },
+  { icon: 'calculator', title: 'Financiamiento claro', text: 'Calcula tu cuota mensual al instante y compara opciones antes de decidir.', who: 'Compradores' },
+] as const;
 ---
+<Base title="Automarket">
+  <!-- Hero -->
+  <section class="relative isolate overflow-hidden bg-brand-gradient text-white">
+    <div class="absolute inset-y-0 right-0 -z-10 w-1/2 stripe-band opacity-20" aria-hidden="true"></div>
+    <div class="absolute -right-24 -top-24 -z-10 size-96 rounded-full bg-aqua/20 blur-3xl" aria-hidden="true"></div>
+    <div class="container-am grid items-center gap-10 pb-28 pt-12 lg:grid-cols-[1.05fr_1fr] lg:pb-36 lg:pt-20">
+      <div>
+        <p class="font-condensed text-sm font-bold uppercase tracking-[0.18em] text-aqua">El mercado de vehículos de Honduras</p>
+        <h1 class="mt-4 text-4xl font-normal leading-[1.08] text-white sm:text-5xl lg:text-6xl">
+          <strong class="font-extrabold">Compra y vende</strong> tu próximo vehículo con confianza
+        </h1>
+        <p class="mt-5 max-w-xl text-lg leading-relaxed text-white/80">
+          Conectamos vendedores y compradores en tiempo real. Publicaciones verificadas, información completa y herramientas para que cerrar un trato sea fácil y seguro.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="/vehiculos/" class="btn bg-aqua px-6 py-3 text-base text-navy-deep hover:bg-white">Explorar vehículos <Icon name="arrow-right" class="size-4" /></a>
+          <a href="/panel/publicar/" class="btn border border-white/30 px-6 py-3 text-base text-white hover:bg-white/10">Publicar gratis</a>
+        </div>
+        <dl class="mt-10 grid max-w-md grid-cols-3 gap-6 border-t border-white/15 pt-6">
+          <div><dt class="text-xs text-white/60">Vehículos activos</dt><dd class="font-display text-2xl font-bold">2,480+</dd></div>
+          <div><dt class="text-xs text-white/60">Concesionarios</dt><dd class="font-display text-2xl font-bold">120</dd></div>
+          <div><dt class="text-xs text-white/60">Ciudades</dt><dd class="font-display text-2xl font-bold">18</dd></div>
+        </dl>
+      </div>
+      <div class="relative hidden lg:block">
+        <div class="relative overflow-hidden rounded-3xl shadow-2xl ring-1 ring-white/20">
+          <img src="/img/cars/photo-1552519507-da3b142c6e3d.webp" alt="Chevrolet Camaro azul en carretera" class="aspect-[4/3] w-full object-cover" fetchpriority="high" />
+          <div class="absolute inset-0 bg-gradient-to-t from-navy-deep/60 via-transparent"></div>
+          <div class="absolute bottom-5 left-5 right-5 flex items-end justify-between">
+            <div>
+              <p class="font-condensed text-xs uppercase tracking-widest text-aqua">Destacado</p>
+              <p class="font-display text-xl font-bold">Chevrolet Camaro SS 2018</p>
+            </div>
+            <p class="rounded-lg bg-white px-3 py-1.5 font-display text-lg font-extrabold text-navy">L 870,000</p>
+          </div>
+        </div>
+        <div class="absolute -left-8 top-10 flex items-center gap-3 rounded-2xl bg-white p-3 pr-5 text-ink shadow-lift">
+          <span class="grid size-10 place-items-center rounded-xl bg-teal-50 text-teal"><Icon name="badge" /></span>
+          <div><p class="text-sm font-bold">Vendedor verificado</p><p class="text-xs text-muted">Identidad y documentos</p></div>
+        </div>
+        <div class="absolute -bottom-6 right-10 flex items-center gap-3 rounded-2xl bg-white p-3 pr-5 text-ink shadow-lift">
+          <span class="grid size-10 place-items-center rounded-xl bg-fuchsia-50 text-fuchsia"><Icon name="chat" /></span>
+          <div><p class="text-sm font-bold">12 consultas hoy</p><p class="text-xs text-muted">Respuesta promedio 15 min</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-<Base title='Inicio'>
-	<Introduction/>
+  <!-- Buscador -->
+  <section class="container-am relative z-10 -mt-20 lg:-mt-24">
+    <form action="/vehiculos/" method="get" class="card grid gap-3 p-4 sm:p-5 md:grid-cols-[2fr_1fr_1fr_auto] md:items-end" role="search">
+      <div>
+        <label for="q" class="label">¿Qué estás buscando?</label>
+        <div class="relative">
+          <Icon name="search" class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
+          <input id="q" name="q" class="input pl-9" placeholder="Marca, modelo o palabra clave" autocomplete="off" />
+        </div>
+      </div>
+      <div>
+        <label for="tipo" class="label">Tipo</label>
+        <select id="tipo" name="tipo" class="input">
+          <option value="">Todos</option>
+          {types.map((t) => <option value={t}>{t}</option>)}
+        </select>
+      </div>
+      <div>
+        <label for="max" class="label">Precio máximo</label>
+        <select id="max" name="max" class="input">
+          <option value="">Sin límite</option>
+          <option value="300000">L 300,000</option>
+          <option value="500000">L 500,000</option>
+          <option value="1000000">L 1,000,000</option>
+          <option value="2000000">L 2,000,000</option>
+        </select>
+      </div>
+      <button class="btn-primary h-[42px] px-7"><Icon name="search" class="size-4" />Buscar</button>
+      <div class="flex flex-wrap items-center gap-2 md:col-span-4">
+        <span class="text-xs text-muted">Populares:</span>
+        {[['0 km', '/vehiculos/?estado=Nuevo'], ['SUV familiares', '/vehiculos/?tipo=SUV'], ['Eléctricos', '/vehiculos/?combustible=El%C3%A9ctrico'], ['Acepta permuta', '/vehiculos/?permuta=1'], ['Menos de L 500 mil', '/vehiculos/?max=500000']].map(([label, href]) => (
+          <a href={href} class="rounded-full border border-line px-3 py-1 text-xs font-medium hover:border-teal hover:text-teal">{label}</a>
+        ))}
+      </div>
+    </form>
+  </section>
+
+  <!-- Categorías -->
+  <section class="container-am mt-16">
+    <div class="flex items-end justify-between gap-4">
+      <div>
+        <p class="eyebrow">Explora por tipo</p>
+        <h2 class="mt-2 text-2xl font-bold sm:text-3xl">Encuentra el vehículo para tu estilo</h2>
+      </div>
+    </div>
+    <div class="no-scrollbar -mx-4 mt-6 flex gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-3 sm:px-0 lg:grid-cols-6">
+      {types.map((t) => (
+        <a href={`/vehiculos/?tipo=${encodeURIComponent(t)}`} class="group flex min-w-36 flex-col items-start gap-3 rounded-2xl border border-line bg-white p-4 transition hover:border-teal hover:shadow-card">
+          <span class="grid size-11 place-items-center rounded-xl bg-teal-50 text-teal transition group-hover:bg-teal group-hover:text-white"><Icon name={typeIcon[t]} /></span>
+          <span>
+            <span class="block font-display font-bold text-navy">{t}</span>
+            <span class="text-xs text-muted">{countBy(t)} disponibles</span>
+          </span>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <!-- Destacados -->
+  <section class="container-am mt-16">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <p class="eyebrow">Recién publicados</p>
+        <h2 class="mt-2 text-2xl font-bold sm:text-3xl"><strong>Destacados</strong> <span class="font-normal">de la semana</span></h2>
+      </div>
+      <a href="/vehiculos/" class="inline-flex items-center gap-1 text-sm font-medium text-teal hover:text-teal-deep">Ver los {vehicles.length} vehículos <Icon name="arrow-right" class="size-4" /></a>
+    </div>
+    <div class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3" set:html={featured.map((v) => vehicleCard(v)).join('')} />
+  </section>
+
+  <!-- Cómo funciona -->
+  <section id="como-funciona" class="mt-20 scroll-mt-20 bg-surface py-16">
+    <div class="container-am">
+      <div class="mx-auto max-w-2xl text-center">
+        <p class="eyebrow">Cómo funciona</p>
+        <h2 class="mt-2 text-3xl font-bold">Simple para quien compra. <span class="font-normal">Poderoso para quien vende.</span></h2>
+      </div>
+      <div class="mx-auto mt-8 flex w-fit rounded-full border border-line bg-white p-1" role="tablist" aria-label="Tipo de usuario">
+        <button role="tab" aria-selected="true" data-tab="buyers" class="rounded-full px-5 py-2 text-sm font-medium transition aria-selected:bg-teal aria-selected:text-white">Quiero comprar</button>
+        <button role="tab" aria-selected="false" data-tab="sellers" class="rounded-full px-5 py-2 text-sm font-medium transition aria-selected:bg-teal aria-selected:text-white">Quiero vender</button>
+      </div>
+      {Object.entries(steps).map(([key, list], idx) => (
+        <ol data-panel={key} class:list={['mt-10 grid gap-5 md:grid-cols-3', idx > 0 && 'hidden']} role="tabpanel">
+          {list.map(([icon, title, text], i) => (
+            <li class="card relative p-6">
+              <span class="absolute right-5 top-4 font-display text-5xl font-extrabold text-teal-50">{i + 1}</span>
+              <span class="grid size-12 place-items-center rounded-xl bg-teal-gradient text-white"><Icon name={icon} /></span>
+              <h3 class="mt-5 text-lg font-bold">{title}</h3>
+              <p class="mt-2 text-sm leading-relaxed text-muted">{text}</p>
+            </li>
+          ))}
+        </ol>
+      ))}
+    </div>
+  </section>
+
+  <!-- Beneficios -->
+  <section class="container-am py-20">
+    <div class="grid gap-12 lg:grid-cols-[1fr_1.6fr]">
+      <div class="lg:sticky lg:top-28 lg:self-start">
+        <p class="eyebrow">Beneficios clave</p>
+        <h2 class="mt-2 text-3xl font-bold leading-tight">Transformamos la experiencia de <span class="text-teal">comprar y vender</span> vehículos</h2>
+        <p class="mt-4 leading-relaxed text-muted">Nuestra misión es que cada transacción sea tan fácil, rápida y segura como sea posible, para particulares y concesionarios.</p>
+        <div class="mt-8 flex items-center gap-4 rounded-2xl bg-navy p-5 text-white">
+          <Isotipo variant="white" class="size-12 shrink-0" />
+          <p class="text-sm text-white/85">Más de <strong class="text-white">9,000 contactos</strong> entre compradores y vendedores cada mes.</p>
+        </div>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-2">
+        {benefits.map((b) => (
+          <div class="rounded-2xl border border-line p-6 transition hover:border-fuchsia/30 hover:shadow-card">
+            <div class="flex items-center justify-between">
+              <span class="grid size-11 place-items-center rounded-xl bg-fuchsia-50 text-fuchsia"><Icon name={b.icon} /></span>
+              <span class="font-condensed text-xs font-bold uppercase tracking-widest text-muted">{b.who}</span>
+            </div>
+            <h3 class="mt-4 text-lg font-bold">{b.title}</h3>
+            <p class="mt-1.5 text-sm leading-relaxed text-muted">{b.text}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Marcas -->
+  <section class="border-y border-line bg-white py-10">
+    <div class="container-am">
+      <p class="text-center font-condensed text-sm font-bold uppercase tracking-[0.14em] text-muted">Marcas disponibles</p>
+      <ul class="mt-5 flex flex-wrap justify-center gap-2">
+        {brands.map((b) => (
+          <li><a href={`/vehiculos/?marca=${encodeURIComponent(b)}`} class="block rounded-full bg-surface px-4 py-2 font-condensed text-[15px] font-bold text-ink transition hover:bg-teal hover:text-white">{b}</a></li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <!-- CTA vendedores -->
+  <section class="container-am py-20">
+    <div class="relative overflow-hidden rounded-3xl bg-teal-gradient px-6 py-12 text-white sm:px-12">
+      <div class="absolute inset-y-0 right-0 w-1/2 stripe-band opacity-25" aria-hidden="true"></div>
+      <div class="relative grid items-center gap-8 lg:grid-cols-[1.4fr_1fr]">
+        <div>
+          <p class="font-condensed text-sm font-bold uppercase tracking-[0.18em] text-aqua">Para concesionarios y vendedores</p>
+          <h2 class="mt-3 text-3xl font-bold text-white sm:text-4xl">Lleva tu inventario a miles de compradores</h2>
+          <p class="mt-4 max-w-xl text-white/85">Publica gratis tu primer vehículo. Cuando estés listo para crecer, los planes Profesional y Concesionario incluyen anuncios destacados, reportes e inventario compartible.</p>
+        </div>
+        <div class="flex flex-wrap gap-3 lg:justify-end">
+          <a href="/registro/" class="btn-white px-6 py-3 text-base">Crear cuenta gratis</a>
+          <a href="/planes/" class="btn border border-white/40 px-6 py-3 text-base text-white hover:bg-white/10">Ver planes</a>
+        </div>
+      </div>
+    </div>
+  </section>
 </Base>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-tab]').forEach((tab) =>
+    tab.addEventListener('click', () => {
+      document.querySelectorAll<HTMLButtonElement>('[data-tab]').forEach((t) => t.setAttribute('aria-selected', String(t === tab)));
+      document.querySelectorAll<HTMLElement>('[data-panel]').forEach((p) => p.classList.toggle('hidden', p.dataset.panel !== tab.dataset.tab));
+    }),
+  );
+</script>

@@ -1,0 +1,41 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+---
+<Base title="Mis favoritos">
+  <section class="border-b border-line bg-surface">
+    <div class="container-am py-8">
+      <p class="eyebrow">Tu lista</p>
+      <h1 class="mt-2 text-3xl font-bold"><strong>Mis</strong> <span class="font-normal">favoritos</span></h1>
+      <p class="mt-1 text-sm text-muted">Guardados en este dispositivo. Toca el corazón de cualquier vehículo para agregarlo.</p>
+    </div>
+  </section>
+  <div class="container-am py-8">
+    <div data-list class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"></div>
+    <div data-empty class="hidden flex-col items-center rounded-2xl border border-dashed border-line px-6 py-16 text-center">
+      <span class="grid size-14 place-items-center rounded-full bg-fuchsia-50 text-fuchsia"><Icon name="heart" class="size-6" /></span>
+      <p class="mt-4 font-display text-lg font-bold text-navy">Aún no tienes favoritos</p>
+      <p class="mt-1 text-sm text-muted">Guarda los vehículos que te interesan para compararlos después.</p>
+      <a href="/vehiculos/" class="btn-primary mt-5">Explorar vehículos</a>
+    </div>
+  </div>
+</Base>
+
+<script>
+  import { vehicles } from '../data/vehicles';
+  import { favorites, inventory } from '../lib/store';
+  import { vehicleCard } from '../lib/cards';
+
+  const list = document.querySelector<HTMLElement>('[data-list]')!;
+  const empty = document.querySelector<HTMLElement>('[data-empty]')!;
+  function render() {
+    const ids = favorites.all();
+    const pool = [...inventory.publishedLocal(), ...vehicles];
+    const items = ids.map((id) => pool.find((v) => v.id === id)).filter((v) => !!v);
+    list.innerHTML = items.map((v) => vehicleCard(v, { fav: true })).join('');
+    empty.classList.toggle('hidden', items.length > 0);
+    empty.classList.toggle('flex', items.length === 0);
+  }
+  render();
+  window.addEventListener('am:store', (e) => (e as CustomEvent).detail === 'am.favorites' && render());
+</script>

@@ -1,0 +1,17 @@
+---
+import Base from '../../layouts/Base.astro';
+import VehicleDetail from '../../components/VehicleDetail.astro';
+import { vehicles, type Vehicle } from '../../data/vehicles';
+import { money } from '../../lib/format';
+
+export function getStaticPaths() {
+  return vehicles.map((vehicle) => ({ params: { id: vehicle.id }, props: { vehicle } }));
+}
+const { vehicle } = Astro.props as { vehicle: Vehicle };
+---
+<Base
+  title={`${vehicle.brand} ${vehicle.model} ${vehicle.year}`}
+  description={`${vehicle.brand} ${vehicle.model} ${vehicle.version} ${vehicle.year} en ${vehicle.city} por ${money(vehicle.price)}. ${vehicle.description}`}
+>
+  <VehicleDetail vehicle={vehicle} />
+</Base>

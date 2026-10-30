@@ -1,0 +1,136 @@
+---
+import Base from './Base.astro';
+import Logo from '../components/Logo.astro';
+import Icon from '../components/Icon.astro';
+import type { IconName } from '../lib/icons';
+
+interface Props {
+  title: string;
+  heading?: string;
+  subtitle?: string;
+}
+const { title, heading = title, subtitle } = Astro.props;
+const path = Astro.url.pathname.replace(/\/?$/, '/');
+const nav: [string, string, IconName][] = [
+  ['/panel/', 'Resumen', 'dashboard'],
+  ['/panel/inventario/', 'Inventario', 'list'],
+  ['/panel/publicar/', 'Publicar vehículo', 'plus'],
+  ['/panel/reportes/', 'Reportes', 'chart'],
+  ['/panel/compartir/', 'Compartir inventario', 'share'],
+];
+---
+<Base title={title} bare bodyClass="bg-surface">
+  <script is:inline>
+    try { if (!localStorage.getItem('am.session')) location.replace('/login/?next=' + encodeURIComponent(location.pathname + location.search)); } catch (e) {}
+  </script>
+  <div class="lg:grid lg:min-h-dvh lg:grid-cols-[260px_1fr]">
+    <!-- Barra lateral -->
+    <div data-side-backdrop class="fixed inset-0 z-40 hidden bg-navy-deep/40 lg:hidden"></div>
+    <aside data-side class="fixed inset-y-0 left-0 z-50 hidden w-72 flex-col bg-navy text-white lg:sticky lg:top-0 lg:flex lg:h-dvh lg:w-auto">
+      <div class="flex h-16 items-center justify-between px-5">
+        <a href="/" aria-label="Ir al sitio"><Logo variant="white" class="h-5 w-auto" /></a>
+        <button type="button" data-side-close class="grid size-8 place-items-center rounded-lg hover:bg-white/10 lg:hidden" aria-label="Cerrar menú"><Icon name="x" class="size-4" /></button>
+      </div>
+      <nav aria-label="Panel" class="mt-2 flex-1 space-y-1 px-3">
+        {nav.map(([href, label, icon]) => {
+          const active = path === href;
+          return (
+            <a href={href} aria-current={active ? 'page' : undefined} class:list={['flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition', active ? 'bg-white/12 font-medium text-white shadow-[inset_3px_0_0_var(--color-aqua)]' : 'text-white/70 hover:bg-white/5 hover:text-white']}>
+              <Icon name={icon} class="size-[18px]" />{label}
+            </a>
+          );
+        })}
+        <a href="/vehiculos/" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/70 hover:bg-white/5 hover:text-white"><Icon name="search" class="size-[18px]" />Ver catálogo público</a>
+      </nav>
+      <div class="m-3 overflow-hidden rounded-2xl bg-white/5 p-4">
+        <p class="font-condensed text-xs font-bold uppercase tracking-widest text-aqua">Plan <span data-plan>Profesional</span></p>
+        <p class="mt-1 text-sm text-white/80"><span data-usage>7</span> de 25 publicaciones</p>
+        <div class="mt-2 h-1.5 rounded-full bg-white/10"><div data-usage-bar class="h-full rounded-full bg-aqua" style="width:28%"></div></div>
+        <a href="/planes/" class="mt-3 inline-flex items-center gap-1 text-xs font-medium text-aqua hover:underline">Mejorar plan <Icon name="arrow-right" class="size-3" /></a>
+      </div>
+    </aside>
+
+    <div class="min-w-0">
+      <header class="sticky top-0 z-30 border-b border-line bg-white/90 backdrop-blur">
+        <div class="flex h-16 items-center gap-3 px-4 sm:px-6 lg:px-8">
+          <button type="button" data-side-open class="grid size-10 place-items-center rounded-lg hover:bg-surface lg:hidden" aria-label="Abrir menú"><Icon name="menu" /></button>
+          <div class="min-w-0 flex-1">
+            <h1 class="truncate text-lg font-bold sm:text-xl">{heading}</h1>
+            {subtitle && <p class="hidden truncate text-xs text-muted sm:block">{subtitle}</p>}
+          </div>
+          <slot name="actions" />
+          <button type="button" data-notify class="relative grid size-10 place-items-center rounded-lg text-ink hover:bg-surface" aria-label="Notificaciones">
+            <Icon name="bell" />
+            <span class="absolute right-2 top-2 size-2 rounded-full bg-fuchsia ring-2 ring-white"></span>
+          </button>
+          <div class="relative">
+            <button type="button" data-user-btn class="flex items-center gap-2 rounded-full p-1 hover:bg-surface" aria-haspopup="menu" aria-expanded="false">
+              <span data-user-initials class="grid size-9 place-items-center rounded-full bg-teal-gradient text-xs font-bold text-white">DR</span>
+              <span class="hidden text-left text-sm leading-tight md:block"><span data-user-name class="block font-medium">Usuario</span><span data-user-company class="block text-xs text-muted">Vendedor</span></span>
+            </button>
+            <div data-user-menu role="menu" class="absolute right-0 mt-2 hidden w-52 overflow-hidden rounded-xl border border-line bg-white py-1 shadow-lift">
+              <a role="menuitem" href="/" class="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-surface"><Icon name="home" class="size-4 text-teal" />Ir al sitio</a>
+              <button role="menuitem" type="button" data-reset class="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm hover:bg-surface"><Icon name="repeat" class="size-4 text-teal" />Restablecer datos demo</button>
+              <hr class="my-1 border-line" />
+              <button role="menuitem" type="button" data-panel-logout class="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-fuchsia-deep hover:bg-surface"><Icon name="logout" class="size-4" />Cerrar sesión</button>
+            </div>
+          </div>
+        </div>
+      </header>
+      <main class="px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <slot />
+      </main>
+    </div>
+  </div>
+</Base>
+
+<script>
+  import { session, inventory, toast } from '../lib/store';
+
+  const user = session.get();
+  if (user) {
+    document.querySelectorAll('[data-user-initials]').forEach((el) => (el.textContent = user.name.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase()));
+    document.querySelectorAll('[data-user-name]').forEach((el) => (el.textContent = user.name));
+    document.querySelectorAll('[data-user-company]').forEach((el) => (el.textContent = user.company ?? `Plan ${user.plan}`));
+    document.querySelectorAll('[data-plan]').forEach((el) => (el.textContent = user.plan));
+  }
+  const limit = user?.plan === 'Concesionario' ? Infinity : user?.plan === 'Básico' ? 1 : 25;
+  const renderUsage = () => {
+    const active = inventory.all().filter((v) => v.published && v.status !== 'Vendido').length;
+    document.querySelectorAll('[data-usage]').forEach((el) => (el.textContent = String(active)));
+    document.querySelectorAll('[data-usage]').forEach((el) => el.nextSibling && (el.nextSibling.textContent = limit === Infinity ? ' publicaciones activas' : ` de ${limit} publicaciones`));
+    document.querySelectorAll<HTMLElement>('[data-usage-bar]').forEach((el) => (el.style.width = `${limit === Infinity ? 15 : Math.min(100, (active / limit) * 100)}%`));
+  };
+  renderUsage();
+  window.addEventListener('am:store', renderUsage);
+
+  const side = document.querySelector<HTMLElement>('[data-side]')!;
+  const backdrop = document.querySelector<HTMLElement>('[data-side-backdrop]')!;
+  const toggle = (open: boolean) => {
+    side.classList.toggle('hidden', !open);
+    side.classList.toggle('flex', open);
+    backdrop.classList.toggle('hidden', !open);
+  };
+  document.querySelector('[data-side-open]')!.addEventListener('click', () => toggle(true));
+  document.querySelector('[data-side-close]')!.addEventListener('click', () => toggle(false));
+  backdrop.addEventListener('click', () => toggle(false));
+
+  const btn = document.querySelector<HTMLButtonElement>('[data-user-btn]')!;
+  const menu = document.querySelector<HTMLElement>('[data-user-menu]')!;
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    btn.setAttribute('aria-expanded', String(!menu.classList.toggle('hidden')));
+  });
+  document.addEventListener('click', () => menu.classList.add('hidden'));
+
+  document.querySelector('[data-panel-logout]')!.addEventListener('click', () => {
+    session.clear();
+    location.href = '/';
+  });
+  document.querySelector('[data-reset]')!.addEventListener('click', () => {
+    inventory.reset();
+    toast('Datos de demostración restablecidos', 'info');
+    setTimeout(() => location.reload(), 600);
+  });
+  document.querySelector('[data-notify]')!.addEventListener('click', () => toast('Tienes 3 consultas nuevas sobre el Toyota Camry', 'info'));
+</script>

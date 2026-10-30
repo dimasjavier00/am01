@@ -1,8 +1,87 @@
 ---
-import Base from "../layouts/Base.astro";
-import FormLogin from "../components/FormLogin.astro";
+import Auth from '../layouts/Auth.astro';
+import Icon from '../components/Icon.astro';
 ---
+<Auth title="Iniciar sesión">
+  <p class="eyebrow">Bienvenido de nuevo</p>
+  <h1 class="mt-2 text-3xl font-bold"><strong>Inicia</strong> <span class="font-normal">sesión</span></h1>
+  <p class="mt-2 text-sm text-muted">¿No tienes cuenta? <a href="/registro/" class="font-medium text-teal hover:underline">Regístrate gratis</a></p>
 
-<Base title="login">
-    <FormLogin/>
-</Base>
+  <button type="button" data-demo class="mt-8 flex w-full items-center gap-3 rounded-xl border-2 border-dashed border-teal/40 bg-teal-50 p-4 text-left transition hover:border-teal">
+    <span class="grid size-10 shrink-0 place-items-center rounded-lg bg-teal text-white"><Icon name="sparkles" class="size-5" /></span>
+    <span>
+      <span class="block font-display font-bold text-navy">Entrar con la cuenta demo</span>
+      <span class="block text-xs text-muted">Explora el panel de vendedor con datos de ejemplo.</span>
+    </span>
+  </button>
+
+  <div class="my-6 flex items-center gap-3 text-xs text-muted"><span class="h-px flex-1 bg-line"></span>o con tu correo<span class="h-px flex-1 bg-line"></span></div>
+
+  <form data-login class="space-y-4" novalidate>
+    <div>
+      <label for="email" class="label">Correo electrónico</label>
+      <input id="email" name="email" type="email" class="input" placeholder="tu@correo.com" required autocomplete="email" />
+      <p class="field-error">Ingresa un correo válido.</p>
+    </div>
+    <div>
+      <div class="flex items-center justify-between">
+        <label for="password" class="label">Contraseña</label>
+        <a href="#" data-forgot class="mb-1.5 text-xs text-teal hover:underline">¿La olvidaste?</a>
+      </div>
+      <div class="relative">
+        <input id="password" name="password" type="password" class="input pr-11" placeholder="••••••••" required minlength="8" autocomplete="current-password" />
+        <button type="button" data-toggle-pass class="absolute inset-y-0 right-0 grid w-11 place-items-center text-muted hover:text-teal" aria-label="Mostrar contraseña"><Icon name="eye" class="size-4" /></button>
+      </div>
+      <p class="field-error">La contraseña debe tener al menos 8 caracteres.</p>
+    </div>
+    <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="remember" class="check" checked />Mantener la sesión iniciada</label>
+    <button class="btn-primary w-full py-3">Iniciar sesión</button>
+  </form>
+</Auth>
+
+<script>
+  import { session, DEMO_USER, toast } from '../lib/store';
+
+  const next = new URLSearchParams(location.search).get('next') || '/panel/';
+  const go = () => setTimeout(() => (location.href = next.startsWith('/') ? next : '/panel/'), 500);
+
+  if (session.get()) location.replace(next);
+
+  const demo = () => {
+    session.set(DEMO_USER);
+    toast('¡Hola, Dimas! Entraste con la cuenta demo');
+    go();
+  };
+  document.querySelector('[data-demo]')!.addEventListener('click', demo);
+  if (new URLSearchParams(location.search).get('demo')) demo();
+
+  document.querySelector('[data-toggle-pass]')!.addEventListener('click', (e) => {
+    const btn = e.currentTarget as HTMLButtonElement;
+    const input = document.getElementById('password') as HTMLInputElement;
+    const show = input.type === 'password';
+    input.type = show ? 'text' : 'password';
+    btn.setAttribute('aria-label', show ? 'Ocultar contraseña' : 'Mostrar contraseña');
+  });
+  document.querySelector('[data-forgot]')!.addEventListener('click', (e) => {
+    e.preventDefault();
+    toast('Te enviaremos un enlace de recuperación a tu correo', 'info');
+  });
+
+  const form = document.querySelector<HTMLFormElement>('[data-login]')!;
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    let ok = true;
+    form.querySelectorAll<HTMLInputElement>('input[required]').forEach((input) => {
+      const valid = input.checkValidity();
+      input.setAttribute('aria-invalid', String(!valid));
+      (input.closest('div:has(> .field-error)') ?? input.parentElement)!.querySelector('.field-error')?.classList.toggle('is-visible', !valid);
+      if (!valid) ok = false;
+    });
+    if (!ok) return;
+    const email = String(new FormData(form).get('email'));
+    const name = email.split('@')[0].replace(/[._-]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    session.set({ ...DEMO_USER, name, email, company: undefined });
+    toast(`Bienvenido, ${name}`);
+    go();
+  });
+</script>

@@ -1,0 +1,99 @@
+---
+import Panel from '../../layouts/Panel.astro';
+import Icon from '../../components/Icon.astro';
+---
+<Panel title="Compartir inventario" heading="Compartir inventario" subtitle="Un enlace con todos tus vehículos disponibles">
+  <div class="grid gap-6 xl:grid-cols-[1fr_1.1fr]">
+    <div class="space-y-6">
+      <section class="card p-6" aria-labelledby="link-title">
+        <h2 id="link-title" class="font-display text-lg font-bold">Tu enlace público</h2>
+        <p class="mt-1 text-sm text-muted">Compártelo en redes sociales, WhatsApp o tu firma de correo. Se actualiza solo cuando publicas o vendes.</p>
+        <div class="mt-4 flex gap-2">
+          <input data-link readonly class="input font-mono text-xs" aria-label="Enlace del inventario" />
+          <button type="button" data-copy="link" class="btn-primary shrink-0"><Icon name="copy" class="size-4" />Copiar</button>
+        </div>
+        <div class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <a data-share-wa target="_blank" rel="noopener" class="btn bg-[#25D366] text-white hover:brightness-95"><Icon name="chat" class="size-4" />WhatsApp</a>
+          <a data-share-fb target="_blank" rel="noopener" class="btn bg-[#1877F2] text-white hover:brightness-95"><Icon name="facebook" class="size-4" />Facebook</a>
+          <a data-share-mail class="btn-ghost"><Icon name="mail" class="size-4" />Correo</a>
+          <a data-share-print target="_blank" class="btn-ghost"><Icon name="download" class="size-4" />PDF</a>
+        </div>
+      </section>
+
+      <section class="card p-6" aria-labelledby="opt-title">
+        <h2 id="opt-title" class="font-display text-lg font-bold">Opciones</h2>
+        <div class="mt-4 space-y-3">
+          <label class="flex items-center justify-between gap-4 rounded-xl border border-line p-3 text-sm">
+            <span><span class="font-medium">Mostrar precios</span><span class="block text-xs text-muted">Si lo desactivas, verán “Consultar precio”.</span></span>
+            <input type="checkbox" data-opt="precios" checked class="check size-5" />
+          </label>
+          <label class="flex items-center justify-between gap-4 rounded-xl border border-line p-3 text-sm">
+            <span><span class="font-medium">Seguimiento de campaña</span><span class="block text-xs text-muted">Agrega una etiqueta para medir de dónde llegan las visitas.</span></span>
+            <select data-opt="origen" class="input w-36 py-1.5">
+              <option value="">Ninguna</option><option value="facebook">Facebook</option><option value="instagram">Instagram</option><option value="whatsapp">WhatsApp</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="card p-6" aria-labelledby="embed-title">
+        <h2 id="embed-title" class="flex items-center gap-2 font-display text-lg font-bold"><Icon name="code" class="size-5 text-teal" />Insertar en tu sitio web</h2>
+        <p class="mt-1 text-sm text-muted">Pega este código en la página de tu concesionario.</p>
+        <textarea data-embed readonly rows="3" class="input mt-3 resize-none font-mono text-xs" aria-label="Código para insertar"></textarea>
+        <button type="button" data-copy="embed" class="btn-ghost mt-3"><Icon name="copy" class="size-4" />Copiar código</button>
+      </section>
+    </div>
+
+    <section class="card overflow-hidden" aria-labelledby="prev-title">
+      <div class="flex items-center justify-between border-b border-line px-5 py-3">
+        <h2 id="prev-title" class="font-display font-bold">Vista previa</h2>
+        <a data-open target="_blank" class="inline-flex items-center gap-1 text-sm font-medium text-teal hover:underline">Abrir <Icon name="arrow-right" class="size-4" /></a>
+      </div>
+      <div class="bg-surface p-3">
+        <div class="mx-auto flex items-center gap-1.5 rounded-t-lg bg-white px-3 py-2">
+          <span class="size-2.5 rounded-full bg-fuchsia/60"></span><span class="size-2.5 rounded-full bg-amber-300"></span><span class="size-2.5 rounded-full bg-teal/60"></span>
+          <span data-url-bar class="ml-2 truncate rounded bg-surface px-2 py-0.5 font-mono text-[11px] text-muted"></span>
+        </div>
+        <div class="relative h-[560px] overflow-hidden rounded-b-lg bg-white">
+          <iframe data-frame title="Vista previa del inventario" class="absolute left-0 top-0 h-[1120px] w-[200%] origin-top-left scale-50 border-0" loading="lazy"></iframe>
+        </div>
+      </div>
+    </section>
+  </div>
+</Panel>
+
+<script>
+  import { toast } from '../../lib/store';
+
+  const base = `${location.origin}/inventario/motores-del-valle/`;
+  const $ = <T extends Element>(s: string) => document.querySelector<T>(s)!;
+  function url() {
+    const p = new URLSearchParams();
+    if (!$<HTMLInputElement>('[data-opt="precios"]').checked) p.set('precios', '0');
+    const origen = $<HTMLSelectElement>('[data-opt="origen"]').value;
+    if (origen) p.set('utm_source', origen);
+    return p.size ? `${base}?${p}` : base;
+  }
+  function render() {
+    const u = url();
+    $<HTMLInputElement>('[data-link]').value = u;
+    $<HTMLTextAreaElement>('[data-embed]').value = `<iframe src="${u}" width="100%" height="900" style="border:0" title="Inventario Motores del Valle"></iframe>`;
+    $<HTMLAnchorElement>('[data-share-wa]').href = `https://wa.me/?text=${encodeURIComponent(`Mira nuestro inventario de vehículos disponibles: ${u}`)}`;
+    $<HTMLAnchorElement>('[data-share-fb]').href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(u)}`;
+    $<HTMLAnchorElement>('[data-share-mail]').href = `mailto:?subject=${encodeURIComponent('Inventario de vehículos · Motores del Valle')}&body=${encodeURIComponent(u)}`;
+    $<HTMLAnchorElement>('[data-share-print]').href = `${u}${u.includes('?') ? '&' : '?'}print=1`;
+    $<HTMLAnchorElement>('[data-open]').href = u;
+    $('[data-url-bar]').textContent = u.replace(/^https?:\/\//, '');
+    const frame = $<HTMLIFrameElement>('[data-frame]');
+    if (frame.src !== u) frame.src = u;
+  }
+  document.querySelectorAll('[data-opt]').forEach((el) => el.addEventListener('change', render));
+  document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      const text = b.dataset.copy === 'link' ? $<HTMLInputElement>('[data-link]').value : $<HTMLTextAreaElement>('[data-embed]').value;
+      try { await navigator.clipboard.writeText(text); toast(b.dataset.copy === 'link' ? 'Enlace copiado' : 'Código copiado'); }
+      catch { toast('No se pudo copiar. Selecciona el texto y cópialo manualmente.', 'warn'); }
+    }),
+  );
+  render();
+</script>

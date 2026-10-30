@@ -1,0 +1,115 @@
+---
+import Auth from '../layouts/Auth.astro';
+import Icon from '../components/Icon.astro';
+---
+<Auth title="Crear cuenta">
+  <p class="eyebrow">Únete gratis</p>
+  <h1 class="mt-2 text-3xl font-bold"><strong>Crea</strong> <span class="font-normal">tu cuenta</span></h1>
+  <p class="mt-2 text-sm text-muted">¿Ya tienes cuenta? <a href="/login/" class="font-medium text-teal hover:underline">Inicia sesión</a></p>
+
+  <form data-register class="mt-8 space-y-4" novalidate>
+    <fieldset>
+      <legend class="label">¿Qué quieres hacer?</legend>
+      <div class="grid grid-cols-2 gap-2">
+        {[['Comprador', 'Comprar', 'search'], ['Vendedor', 'Vender', 'tag']].map(([value, label, icon], i) => (
+          <label class="cursor-pointer">
+            <input type="radio" name="role" value={value} class="peer sr-only" checked={i === 1} />
+            <span class="flex items-center gap-2 rounded-xl border border-line p-3 text-sm transition peer-checked:border-teal peer-checked:bg-teal-50 peer-checked:text-teal-deep peer-focus-visible:ring-2 peer-focus-visible:ring-teal">
+              <Icon name={icon as 'search' | 'tag'} class="size-4" />{label}
+            </span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div>
+        <label for="first" class="label">Nombre</label>
+        <input id="first" name="first" class="input" required autocomplete="given-name" />
+        <p class="field-error">Requerido.</p>
+      </div>
+      <div>
+        <label for="last" class="label">Apellido</label>
+        <input id="last" name="last" class="input" required autocomplete="family-name" />
+        <p class="field-error">Requerido.</p>
+      </div>
+    </div>
+    <div>
+      <label for="email" class="label">Correo electrónico</label>
+      <input id="email" name="email" type="email" class="input" placeholder="tu@correo.com" required autocomplete="email" />
+      <p class="field-error">Ingresa un correo válido.</p>
+    </div>
+    <div>
+      <label for="phone" class="label">Teléfono <span class="font-normal text-muted">(opcional)</span></label>
+      <div class="flex">
+        <span class="grid place-items-center rounded-l-lg border border-r-0 border-line bg-surface px-3 text-sm text-muted">+504</span>
+        <input id="phone" name="phone" class="input rounded-l-none" placeholder="9876-5432" inputmode="tel" autocomplete="tel-national" />
+      </div>
+    </div>
+    <div>
+      <label for="password" class="label">Contraseña</label>
+      <input id="password" name="password" type="password" class="input" required minlength="8" autocomplete="new-password" />
+      <div class="mt-2 grid grid-cols-4 gap-1" aria-hidden="true">
+        {[0, 1, 2, 3].map((i) => <span data-meter={i} class="h-1 rounded-full bg-line transition"></span>)}
+      </div>
+      <p class="mt-1 text-xs text-muted" data-meter-label>Mínimo 8 caracteres, con números y mayúsculas.</p>
+      <p class="field-error">La contraseña debe tener al menos 8 caracteres.</p>
+    </div>
+    <div>
+      <label for="confirm" class="label">Confirmar contraseña</label>
+      <input id="confirm" name="confirm" type="password" class="input" required autocomplete="new-password" />
+      <p class="field-error">Las contraseñas no coinciden.</p>
+    </div>
+    <label class="flex items-start gap-2 text-sm"><input type="checkbox" name="news" class="check mt-0.5" />Quiero recibir novedades, alertas de precio y promociones.</label>
+    <div>
+      <label class="flex items-start gap-2 text-sm"><input type="checkbox" name="terms" required class="check mt-0.5" />Acepto los <a href="/legal/" class="text-teal hover:underline">términos y condiciones</a> y la <a href="/legal/#privacidad" class="text-teal hover:underline">política de privacidad</a>.</label>
+      <p class="field-error">Debes aceptar los términos para continuar.</p>
+    </div>
+    <button class="btn-accent w-full py-3">Crear cuenta</button>
+  </form>
+</Auth>
+
+<script>
+  import { session, toast, type Session } from '../lib/store';
+
+  const form = document.querySelector<HTMLFormElement>('[data-register]')!;
+  const pass = form.querySelector<HTMLInputElement>('#password')!;
+  const confirm = form.querySelector<HTMLInputElement>('#confirm')!;
+  const plan = (new URLSearchParams(location.search).get('plan') as Session['plan']) || 'Básico';
+
+  pass.addEventListener('input', () => {
+    const v = pass.value;
+    const score = [v.length >= 8, /[A-Z]/.test(v), /\d/.test(v), /[^A-Za-z0-9]/.test(v) || v.length >= 12].filter(Boolean).length;
+    const colors = ['bg-fuchsia', 'bg-amber-400', 'bg-aqua', 'bg-teal'];
+    form.querySelectorAll<HTMLElement>('[data-meter]').forEach((el, i) => {
+      el.className = `h-1 rounded-full transition ${i < score ? colors[score - 1] : 'bg-line'}`;
+    });
+    form.querySelector('[data-meter-label]')!.textContent = v ? ['Muy débil', 'Débil', 'Aceptable', 'Buena', 'Excelente'][score] : 'Mínimo 8 caracteres, con números y mayúsculas.';
+  });
+
+  const errorFor = (input: HTMLInputElement) => input.closest('div')!.querySelector<HTMLElement>(':scope > .field-error') ?? input.closest('div')!.parentElement!.querySelector<HTMLElement>('.field-error');
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    let ok = true;
+    form.querySelectorAll<HTMLInputElement>('input[required]').forEach((input) => {
+      let valid = input.checkValidity();
+      if (input === confirm) valid = valid && confirm.value === pass.value;
+      input.setAttribute('aria-invalid', String(!valid));
+      errorFor(input)?.classList.toggle('is-visible', !valid);
+      if (!valid) ok = false;
+    });
+    if (!ok) {
+      form.querySelector<HTMLInputElement>('[aria-invalid="true"]')?.focus();
+      return;
+    }
+    const fd = new FormData(form);
+    session.set({
+      name: `${fd.get('first')} ${fd.get('last')}`.trim(),
+      email: String(fd.get('email')),
+      role: fd.get('role') as Session['role'],
+      plan,
+    });
+    toast('¡Cuenta creada! Bienvenido a Automarket');
+    setTimeout(() => (location.href = fd.get('role') === 'Vendedor' ? '/panel/' : '/vehiculos/'), 600);
+  });
+</script>

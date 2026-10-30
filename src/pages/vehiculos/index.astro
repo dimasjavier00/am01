@@ -1,0 +1,310 @@
+---
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import { brands, types, fuels, cities, vehicles } from '../../data/vehicles';
+
+const years = [...new Set(vehicles.map((v) => v.year))].sort((a, b) => b - a);
+---
+<Base title="Vehículos en venta" description="Explora vehículos nuevos y usados en venta en Honduras con filtros por marca, precio, año, combustible y ciudad.">
+  <section class="border-b border-line bg-surface">
+    <div class="container-am py-8">
+      <nav aria-label="Ruta" class="flex items-center gap-1 text-xs text-muted">
+        <a href="/" class="hover:text-teal">Inicio</a><Icon name="chevron-right" class="size-3" /><span>Vehículos</span>
+      </nav>
+      <h1 class="mt-3 text-3xl font-bold"><strong>Vehículos</strong> <span class="font-normal">en venta</span></h1>
+      <p class="mt-1 text-sm text-muted" data-count-label>{vehicles.length} resultados en Honduras</p>
+    </div>
+  </section>
+
+  <div class="container-am grid gap-8 py-8 lg:grid-cols-[280px_1fr]">
+    <!-- Filtros -->
+    <div data-filters-backdrop class="fixed inset-0 z-50 hidden bg-navy-deep/40 lg:hidden"></div>
+    <aside data-filters-panel class="fixed inset-y-0 left-0 z-50 hidden w-[88vw] max-w-sm overflow-y-auto bg-white p-5 shadow-2xl lg:static lg:z-auto lg:block lg:w-auto lg:max-w-none lg:overflow-visible lg:bg-transparent lg:p-0 lg:shadow-none">
+      <form id="filters" class="space-y-6" autocomplete="off">
+        <div class="flex items-center justify-between">
+          <p class="flex items-center gap-2 font-display font-bold text-navy"><Icon name="sliders" class="size-4" />Filtros</p>
+          <div class="flex items-center gap-2">
+            <button type="reset" class="text-xs font-medium text-fuchsia hover:underline">Limpiar todo</button>
+            <button type="button" data-filters-close class="grid size-8 place-items-center rounded-lg hover:bg-surface lg:hidden" aria-label="Cerrar filtros"><Icon name="x" class="size-4" /></button>
+          </div>
+        </div>
+
+        <fieldset>
+          <legend class="label">Condición</legend>
+          <div class="grid grid-cols-3 gap-1 rounded-lg bg-surface p-1 text-sm">
+            {[['', 'Todos'], ['Nuevo', 'Nuevos'], ['Usado', 'Usados']].map(([v, l]) => (
+              <label class="cursor-pointer">
+                <input type="radio" name="estado" value={v} class="peer sr-only" checked={v === ''} />
+                <span class="block rounded-md py-1.5 text-center peer-checked:bg-white peer-checked:font-medium peer-checked:text-teal peer-checked:shadow-sm peer-focus-visible:ring-2 peer-focus-visible:ring-teal">{l}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend class="label">Tipo</legend>
+          <div class="flex flex-wrap gap-2">
+            {types.map((t) => (
+              <label class="cursor-pointer">
+                <input type="checkbox" name="tipo" value={t} class="peer sr-only" />
+                <span class="block rounded-full border border-line bg-white px-3 py-1 text-sm transition peer-checked:border-teal peer-checked:bg-teal peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-teal">{t}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend class="label">Precio (L)</legend>
+          <div class="grid grid-cols-2 gap-2">
+            <input name="min" type="number" inputmode="numeric" min="0" step="10000" placeholder="Mínimo" class="input" aria-label="Precio mínimo" />
+            <input name="max" type="number" inputmode="numeric" min="0" step="10000" placeholder="Máximo" class="input" aria-label="Precio máximo" />
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend class="label">Año</legend>
+          <div class="grid grid-cols-2 gap-2">
+            <select name="desde" class="input" aria-label="Año desde"><option value="">Desde</option>{[...years].reverse().map((y) => <option>{y}</option>)}</select>
+            <select name="hasta" class="input" aria-label="Año hasta"><option value="">Hasta</option>{years.map((y) => <option>{y}</option>)}</select>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend class="label">Marca</legend>
+          <div class="max-h-56 space-y-1.5 overflow-y-auto pr-1">
+            {brands.map((b) => (
+              <label class="flex cursor-pointer items-center justify-between gap-2 text-sm">
+                <span class="flex items-center gap-2"><input type="checkbox" name="marca" value={b} class="check" />{b}</span>
+                <span class="text-xs text-muted">{vehicles.filter((v) => v.brand === b).length}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend class="label">Combustible</legend>
+          <div class="grid grid-cols-2 gap-1.5">
+            {fuels.map((f) => (
+              <label class="flex cursor-pointer items-center gap-2 text-sm"><input type="checkbox" name="combustible" value={f} class="check" />{f}</label>
+            ))}
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend class="label">Transmisión</legend>
+          <div class="flex gap-4">
+            {['Automática', 'Manual'].map((t) => (
+              <label class="flex cursor-pointer items-center gap-2 text-sm"><input type="checkbox" name="trans" value={t} class="check" />{t}</label>
+            ))}
+          </div>
+        </fieldset>
+
+        <div>
+          <label for="ciudad" class="label">Ciudad</label>
+          <select id="ciudad" name="ciudad" class="input"><option value="">Todo el país</option>{cities.map((c) => <option>{c}</option>)}</select>
+        </div>
+
+        <label class="flex cursor-pointer items-center justify-between rounded-xl border border-line bg-white p-3 text-sm">
+          <span class="flex items-center gap-2"><Icon name="repeat" class="size-4 text-navy" />Acepta permuta</span>
+          <input type="checkbox" name="permuta" value="1" class="check" />
+        </label>
+
+        <button type="button" data-filters-close class="btn-primary w-full lg:hidden">Ver <span data-count>{vehicles.length}</span> resultados</button>
+      </form>
+    </aside>
+
+    <!-- Resultados -->
+    <section aria-labelledby="results-title">
+      <h2 id="results-title" class="sr-only">Resultados</h2>
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="relative min-w-0 flex-1 basis-64">
+          <Icon name="search" class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
+          <input form="filters" name="q" type="search" placeholder="Buscar marca, modelo o versión" class="input pl-9" aria-label="Buscar" />
+        </div>
+        <button type="button" data-filters-open class="btn-ghost lg:hidden"><Icon name="sliders" class="size-4" />Filtros <span data-active-count class="hidden rounded-full bg-teal px-1.5 text-xs text-white"></span></button>
+        <label class="flex items-center gap-2 text-sm">
+          <span class="hidden text-muted sm:inline">Ordenar</span>
+          <select form="filters" name="orden" class="input w-auto py-2">
+            <option value="recientes">Más recientes</option>
+            <option value="precio-asc">Precio: menor a mayor</option>
+            <option value="precio-desc">Precio: mayor a menor</option>
+            <option value="anio-desc">Año: más nuevo</option>
+            <option value="km-asc">Menor kilometraje</option>
+          </select>
+        </label>
+        <div class="hidden rounded-lg border border-line bg-white p-0.5 sm:flex" role="group" aria-label="Vista">
+          <button type="button" data-view="grid" aria-pressed="true" class="grid size-9 place-items-center rounded-md text-muted aria-pressed:bg-teal-50 aria-pressed:text-teal" aria-label="Cuadrícula"><Icon name="grid" class="size-4" /></button>
+          <button type="button" data-view="list" aria-pressed="false" class="grid size-9 place-items-center rounded-md text-muted aria-pressed:bg-teal-50 aria-pressed:text-teal" aria-label="Lista"><Icon name="rows" class="size-4" /></button>
+        </div>
+      </div>
+
+      <div data-chips class="mt-4 flex flex-wrap gap-2"></div>
+
+      <div data-results class="mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-3" aria-live="polite"></div>
+
+      <div data-empty class="mt-10 hidden flex-col items-center rounded-2xl border border-dashed border-line px-6 py-16 text-center">
+        <span class="grid size-14 place-items-center rounded-full bg-teal-50 text-teal"><Icon name="search" class="size-6" /></span>
+        <p class="mt-4 font-display text-lg font-bold text-navy">No encontramos vehículos con esos filtros</p>
+        <p class="mt-1 text-sm text-muted">Prueba ampliar el rango de precio o quitar algún filtro.</p>
+        <button type="button" data-clear class="btn-primary mt-5">Limpiar filtros</button>
+      </div>
+
+      <div class="mt-8 flex justify-center">
+        <button type="button" data-more class="btn-ghost hidden">Cargar más vehículos</button>
+      </div>
+    </section>
+  </div>
+</Base>
+
+<script>
+  import { vehicles, type Vehicle } from '../../data/vehicles';
+  import { vehicleCard } from '../../lib/cards';
+  import { favorites, inventory } from '../../lib/store';
+  import { money } from '../../lib/format';
+
+  const PAGE = 9;
+  const form = document.getElementById('filters') as HTMLFormElement;
+  const results = document.querySelector<HTMLElement>('[data-results]')!;
+  const empty = document.querySelector<HTMLElement>('[data-empty]')!;
+  const more = document.querySelector<HTMLButtonElement>('[data-more]')!;
+  const chips = document.querySelector<HTMLElement>('[data-chips]')!;
+  let shown = PAGE;
+  let view: 'grid' | 'list' = 'grid';
+  try { view = (localStorage.getItem('am.view') as 'grid' | 'list') || 'grid'; } catch {}
+
+  const all: (Vehicle & { local?: boolean })[] = [...inventory.publishedLocal(), ...vehicles];
+  const multi = ['tipo', 'marca', 'combustible', 'trans'];
+  const labels: Record<string, string> = { q: 'Búsqueda', min: 'Desde', max: 'Hasta', desde: 'Año desde', hasta: 'Año hasta', ciudad: 'Ciudad', estado: 'Condición', permuta: 'Acepta permuta' };
+
+  // URL -> formulario
+  const params = new URLSearchParams(location.search);
+  for (const [key, value] of params) {
+    const values = multi.includes(key) ? value.split(',') : [value];
+    form.querySelectorAll<HTMLInputElement>(`[name="${key}"]`).forEach((el) => {
+      if (el.type === 'checkbox' || el.type === 'radio') el.checked = values.includes(el.value);
+      else el.value = value;
+    });
+    document.querySelectorAll<HTMLInputElement>(`input[form="filters"][name="${key}"], select[form="filters"][name="${key}"]`).forEach((el) => (el.value = value));
+  }
+
+  function state() {
+    const fd = new FormData(form);
+    const s: Record<string, string[]> = {};
+    for (const [k, v] of fd) if (String(v).trim()) (s[k] ??= []).push(String(v).trim());
+    return s;
+  }
+
+  function apply(s: Record<string, string[]>) {
+    const one = (k: string) => s[k]?.[0];
+    const q = one('q')?.toLowerCase();
+    const n = (k: string) => (one(k) ? Number(one(k)) : undefined);
+    const list = all.filter((v) => {
+      if (q && !`${v.brand} ${v.model} ${v.version} ${v.year} ${v.color}`.toLowerCase().includes(q)) return false;
+      if (s.tipo && !s.tipo.includes(v.type)) return false;
+      if (s.marca && !s.marca.includes(v.brand)) return false;
+      if (s.combustible && !s.combustible.includes(v.fuel)) return false;
+      if (s.trans && !s.trans.includes(v.transmission)) return false;
+      if (one('estado') && v.condition !== one('estado')) return false;
+      if (one('ciudad') && v.city !== one('ciudad')) return false;
+      if (one('permuta') && v.status !== 'Disponible para permuta') return false;
+      if (n('min') !== undefined && v.price < n('min')!) return false;
+      if (n('max') !== undefined && v.price > n('max')!) return false;
+      if (n('desde') !== undefined && v.year < n('desde')!) return false;
+      if (n('hasta') !== undefined && v.year > n('hasta')!) return false;
+      return true;
+    });
+    const sorters: Record<string, (a: Vehicle, b: Vehicle) => number> = {
+      recientes: (a, b) => a.postedDaysAgo - b.postedDaysAgo,
+      'precio-asc': (a, b) => a.price - b.price,
+      'precio-desc': (a, b) => b.price - a.price,
+      'anio-desc': (a, b) => b.year - a.year,
+      'km-asc': (a, b) => a.km - b.km,
+    };
+    return list.sort(sorters[one('orden') ?? 'recientes'] ?? sorters.recientes);
+  }
+
+  function render(resetPage = false) {
+    if (resetPage) shown = PAGE;
+    const s = state();
+    const list = apply(s);
+    const favs = new Set(favorites.all());
+
+    results.className = view === 'grid' ? 'mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-3' : 'mt-5 grid gap-4';
+    results.innerHTML = list.slice(0, shown).map((v) => vehicleCard(v, { layout: view, fav: favs.has(v.id) })).join('');
+    empty.classList.toggle('hidden', list.length > 0);
+    empty.classList.toggle('flex', list.length === 0);
+    more.classList.toggle('hidden', list.length <= shown);
+    more.textContent = `Cargar más vehículos (${list.length - shown} restantes)`;
+    document.querySelectorAll('[data-count]').forEach((el) => (el.textContent = String(list.length)));
+    document.querySelector('[data-count-label]')!.textContent = `${list.length} ${list.length === 1 ? 'resultado' : 'resultados'} en Honduras`;
+
+    // Chips de filtros activos
+    const active = Object.entries(s).filter(([k]) => k !== 'orden');
+    chips.innerHTML = active
+      .flatMap(([k, vals]) =>
+        vals.map((v) => {
+          const text = multi.includes(k) ? v : k === 'min' || k === 'max' ? `${labels[k]} ${money(Number(v))}` : k === 'permuta' ? labels[k] : k === 'q' ? `“${v}”` : `${labels[k]}: ${v}`;
+          return `<button type="button" data-remove="${k}" data-value="${v.replace(/"/g, '&quot;')}" class="inline-flex items-center gap-1 rounded-full bg-teal-50 px-3 py-1 text-xs font-medium text-teal-deep hover:bg-teal-100">${text.replace(/</g, '&lt;')}<span aria-hidden="true">×</span><span class="sr-only">Quitar filtro</span></button>`;
+        }),
+      )
+      .join('');
+    const badge = document.querySelector<HTMLElement>('[data-active-count]')!;
+    badge.textContent = String(active.length);
+    badge.classList.toggle('hidden', active.length === 0);
+
+    // formulario -> URL
+    const url = new URLSearchParams();
+    for (const [k, v] of Object.entries(s)) if (!(k === 'orden' && v[0] === 'recientes')) url.set(k, v.join(','));
+    history.replaceState(null, '', url.size ? `?${url}` : location.pathname);
+  }
+
+  let t: number | undefined;
+  // Escucha en document: la búsqueda y el orden están fuera del <form> (atributo form="filters").
+  document.addEventListener('input', (e) => {
+    if ((e.target as HTMLInputElement).form !== form) return;
+    clearTimeout(t);
+    t = window.setTimeout(() => render(true), (e.target as HTMLInputElement).type === 'search' || (e.target as HTMLInputElement).type === 'number' ? 220 : 0);
+  });
+  form.addEventListener('submit', (e) => e.preventDefault());
+  form.addEventListener('reset', () => setTimeout(() => {
+    document.querySelectorAll<HTMLInputElement>('[form="filters"][name="q"]').forEach((el) => (el.value = ''));
+    render(true);
+  }));
+  document.querySelector('[data-clear]')!.addEventListener('click', () => form.reset());
+  chips.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-remove]');
+    if (!b) return;
+    const { remove: k, value: v } = b.dataset;
+    document.querySelectorAll<HTMLInputElement>(`[name="${k}"]`).forEach((el) => {
+      if (el.type === 'checkbox') { if (el.value === v) el.checked = false; }
+      else if (el.type === 'radio') el.checked = el.value === '';
+      else el.value = '';
+    });
+    render(true);
+  });
+  more.addEventListener('click', () => { shown += PAGE; render(); });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-view]').forEach((b) => {
+    b.setAttribute('aria-pressed', String(b.dataset.view === view));
+    b.addEventListener('click', () => {
+      view = b.dataset.view as 'grid' | 'list';
+      try { localStorage.setItem('am.view', view); } catch {}
+      document.querySelectorAll('[data-view]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      render();
+    });
+  });
+
+  // Panel de filtros en móvil
+  const panel = document.querySelector<HTMLElement>('[data-filters-panel]')!;
+  const backdrop = document.querySelector<HTMLElement>('[data-filters-backdrop]')!;
+  const toggle = (open: boolean) => {
+    panel.classList.toggle('hidden', !open);
+    backdrop.classList.toggle('hidden', !open);
+    document.body.style.overflow = open ? 'hidden' : '';
+  };
+  document.querySelector('[data-filters-open]')!.addEventListener('click', () => toggle(true));
+  document.querySelectorAll('[data-filters-close]').forEach((b) => b.addEventListener('click', () => toggle(false)));
+  backdrop.addEventListener('click', () => toggle(false));
+
+  render();
+</script>

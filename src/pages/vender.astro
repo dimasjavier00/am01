@@ -1,0 +1,78 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import type { IconName } from '../lib/icons';
+
+const features: [IconName, string, string][] = [
+  ['upload', 'Publica en 3 pasos', 'Datos del vehículo, fotos y precio. Tu anuncio queda en línea al instante.'],
+  ['list', 'Inventario bajo control', 'Cambia estados a vendido, en negociación o disponible para permuta con un clic.'],
+  ['share', 'Comparte tu inventario', 'Un enlace propio con todos tus vehículos para redes sociales y WhatsApp.'],
+  ['chart', 'Reportes que sirven', 'Vistas, consultas y tiempo de venta por vehículo y por mes.'],
+  ['sparkles', 'Anuncios destacados', 'Aparece primero en los resultados y en la portada.'],
+  ['badge', 'Perfil verificado', 'Genera confianza con la insignia de concesionario verificado.'],
+];
+---
+<Base title="Vende tu vehículo" description="Publica tu vehículo en Automarket y llega a miles de compradores en Honduras.">
+  <section class="relative overflow-hidden bg-teal-gradient text-white">
+    <div class="absolute inset-y-0 right-0 w-1/2 stripe-band opacity-20" aria-hidden="true"></div>
+    <div class="container-am relative grid items-center gap-10 py-16 lg:grid-cols-2 lg:py-24">
+      <div>
+        <p class="font-condensed text-sm font-bold uppercase tracking-[0.18em] text-aqua">Para vendedores</p>
+        <h1 class="mt-3 text-4xl font-normal text-white sm:text-5xl"><strong class="font-extrabold">Vende tu vehículo</strong> sin complicaciones</h1>
+        <p class="mt-5 max-w-lg text-lg text-white/85">Particular o concesionario: publica gratis, recibe consultas por WhatsApp y administra todo desde tu panel.</p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="/panel/publicar/" class="btn-white px-6 py-3 text-base">Publicar mi vehículo <Icon name="arrow-right" class="size-4" /></a>
+          <a href="/planes/" class="btn border border-white/40 px-6 py-3 text-base text-white hover:bg-white/10">Ver planes</a>
+        </div>
+      </div>
+      <div class="relative">
+        <img src="/img/cars/photo-1494976388531-d1058494cdd8.webp" alt="Ford Mustang gris" class="aspect-[4/3] w-full rounded-3xl object-cover shadow-2xl ring-1 ring-white/20" />
+        <div class="absolute -bottom-6 left-6 right-6 grid grid-cols-3 gap-3 rounded-2xl bg-white p-4 text-center text-ink shadow-lift sm:left-10 sm:right-10">
+          <div><p class="font-display text-2xl font-extrabold text-navy">18 días</p><p class="text-xs text-muted">Tiempo promedio de venta</p></div>
+          <div><p class="font-display text-2xl font-extrabold text-navy">3×</p><p class="text-xs text-muted">Más consultas destacando</p></div>
+          <div><p class="font-display text-2xl font-extrabold text-navy">0%</p><p class="text-xs text-muted">Comisión por venta</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="container-am py-24">
+    <div class="mx-auto max-w-2xl text-center">
+      <p class="eyebrow">Herramientas</p>
+      <h2 class="mt-2 text-3xl font-bold">Todo lo que necesitas para vender</h2>
+    </div>
+    <div class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {features.map(([icon, title, text]) => (
+        <div class="card p-6">
+          <span class="grid size-12 place-items-center rounded-xl bg-teal-50 text-teal"><Icon name={icon} /></span>
+          <h3 class="mt-4 text-lg font-bold">{title}</h3>
+          <p class="mt-1.5 text-sm leading-relaxed text-muted">{text}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="container-am pb-24">
+    <div class="grid items-center gap-10 overflow-hidden rounded-3xl bg-navy text-white lg:grid-cols-2">
+      <div class="p-8 sm:p-12">
+        <p class="font-condensed text-sm font-bold uppercase tracking-[0.18em] text-aqua">Panel de vendedor</p>
+        <h2 class="mt-3 text-3xl font-bold text-white">Mira cómo se ve tu panel</h2>
+        <p class="mt-3 text-white/80">Entra con la cuenta de demostración y prueba publicar, editar y marcar vehículos como vendidos. Los cambios se guardan en tu navegador.</p>
+        <a href="/login/?demo=1" class="btn bg-aqua mt-6 px-6 py-3 text-navy-deep hover:bg-white">Probar el panel demo</a>
+      </div>
+      <div class="bg-stripes h-full min-h-64 p-8">
+        <div class="rounded-2xl bg-white p-4 text-ink shadow-lift">
+          <p class="font-condensed text-xs font-bold uppercase tracking-widest text-muted">Este mes</p>
+          <div class="mt-3 grid grid-cols-3 gap-3">
+            <div class="rounded-xl bg-teal-50 p-3"><p class="text-xs text-muted">Vistas</p><p class="font-display text-xl font-extrabold text-teal-deep">12.4k</p></div>
+            <div class="rounded-xl bg-fuchsia-50 p-3"><p class="text-xs text-muted">Consultas</p><p class="font-display text-xl font-extrabold text-fuchsia-deep">186</p></div>
+            <div class="rounded-xl bg-navy-50 p-3"><p class="text-xs text-muted">Vendidos</p><p class="font-display text-xl font-extrabold text-navy">7</p></div>
+          </div>
+          <div class="mt-4 flex h-24 items-end gap-2">
+            {[40, 55, 35, 70, 62, 85, 78, 92].map((h) => <span class="flex-1 rounded-t-md bg-teal-gradient" style={`height:${h}%`}></span>)}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>

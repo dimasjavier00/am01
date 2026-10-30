@@ -1,0 +1,64 @@
+---
+// Inventario público y compartible de un vendedor (enlace desde "Compartir inventario").
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import Isotipo from '../../components/Isotipo.astro';
+import { sellers, vehicles, type Seller } from '../../data/vehicles';
+import { vehicleCard } from '../../lib/cards';
+
+export function getStaticPaths() {
+  return sellers.map((seller) => ({ params: { seller: seller.id }, props: { seller } }));
+}
+const { seller } = Astro.props as { seller: Seller };
+const list = vehicles.filter((v) => v.sellerId === seller.id && v.status !== 'Vendido');
+const initials = seller.name.split(' ').map((p) => p[0]).slice(0, 2).join('');
+---
+<Base title={`Inventario de ${seller.name}`} description={`${list.length} vehículos disponibles de ${seller.name} en ${seller.city}.`}>
+  <section class="relative overflow-hidden bg-brand-gradient text-white">
+    <div class="absolute inset-y-0 right-0 w-1/2 stripe-band opacity-15" aria-hidden="true"></div>
+    <div class="container-am relative flex flex-col gap-6 py-10 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex items-center gap-4">
+        <span class="grid size-16 shrink-0 place-items-center rounded-2xl bg-white font-display text-xl font-extrabold text-navy">{initials}</span>
+        <div>
+          <p class="font-condensed text-xs font-bold uppercase tracking-[0.18em] text-aqua">Inventario compartido</p>
+          <h1 class="flex items-center gap-2 text-3xl font-bold text-white">{seller.name}{seller.verified && <Icon name="badge" class="size-6 text-aqua" label="Verificado" />}</h1>
+          <p class="mt-1 flex flex-wrap items-center gap-x-3 text-sm text-white/80">
+            <span class="flex items-center gap-1"><Icon name="pin" class="size-4" />{seller.city}</span>
+            <span class="flex items-center gap-1"><Icon name="star" class="size-4 fill-amber-300 text-amber-300" />{seller.rating}</span>
+            <span><span data-count>{list.length}</span> vehículos disponibles</span>
+          </p>
+        </div>
+      </div>
+      <div class="flex gap-2 print:hidden">
+        <a href={`https://wa.me/${seller.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener" class="btn bg-[#25D366] text-white hover:brightness-95"><Icon name="chat" class="size-4" />WhatsApp</a>
+        <a href={`tel:${seller.phone.replace(/\s/g, '')}`} class="btn-white"><Icon name="phone" class="size-4" />{seller.phone}</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="container-am py-8">
+    <div data-grid class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3" set:html={list.map((v) => vehicleCard(v)).join('')} />
+    <p class="mt-10 flex items-center justify-center gap-2 text-xs text-muted"><Isotipo class="size-5" />Inventario publicado con Automarket</p>
+  </div>
+</Base>
+
+<script>
+  import { inventory, session } from '../../lib/store';
+  import { vehicleCard } from '../../lib/cards';
+
+  const params = new URLSearchParams(location.search);
+  const grid = document.querySelector<HTMLElement>('[data-grid]')!;
+  // En la demo, el vendedor con sesión ve también lo que publicó desde su panel.
+  const user = session.get();
+  if (user?.company && location.pathname.includes('motores-del-valle')) {
+    const local = inventory.publishedLocal();
+    if (local.length) {
+      grid.insertAdjacentHTML('afterbegin', local.map((v) => vehicleCard(v)).join(''));
+      document.querySelectorAll('[data-count]').forEach((el) => (el.textContent = String(grid.children.length)));
+    }
+  }
+  if (params.get('precios') === '0') {
+    grid.querySelectorAll('article p.font-display.text-xl').forEach((p) => (p.textContent = 'Consultar precio'));
+  }
+  if (params.get('print')) setTimeout(() => window.print(), 600);
+</script>

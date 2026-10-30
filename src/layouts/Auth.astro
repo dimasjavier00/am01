@@ -1,0 +1,33 @@
+---
+import Base from './Base.astro';
+import Logo from '../components/Logo.astro';
+import Icon from '../components/Icon.astro';
+
+interface Props {
+  title: string;
+}
+const { title } = Astro.props;
+---
+<Base title={title} bare>
+  <div class="grid min-h-dvh lg:grid-cols-[1fr_1.05fr]">
+    <div class="flex flex-col px-4 py-8 sm:px-10">
+      <div class="flex items-center justify-between">
+        <a href="/" aria-label="Automarket, inicio"><Logo class="h-6 w-auto" /></a>
+        <a href="/" class="inline-flex items-center gap-1 text-sm text-muted hover:text-teal"><Icon name="arrow-left" class="size-4" />Volver al sitio</a>
+      </div>
+      <div class="mx-auto flex w-full max-w-md flex-1 flex-col justify-center py-10">
+        <slot />
+      </div>
+      <p class="text-center text-xs text-muted">© {new Date().getFullYear()} Automarket · <a href="/legal/" class="hover:text-teal">Términos</a> · <a href="/legal/#privacidad" class="hover:text-teal">Privacidad</a></p>
+    </div>
+    <div class="relative hidden overflow-hidden bg-brand-gradient lg:block">
+      <div class="absolute inset-0 stripe-band opacity-10" aria-hidden="true"></div>
+      <img src="/img/cars/photo-1503376780353-7e6692767b70.webp" alt="" class="absolute inset-x-10 top-1/2 aspect-[3/2] w-[calc(100%-5rem)] -translate-y-1/2 rounded-3xl object-cover shadow-2xl ring-1 ring-white/20" />
+      <div class="absolute bottom-10 left-10 right-10 text-white">
+        <Logo variant="white" class="h-6 w-auto" />
+        <p class="mt-4 max-w-md text-lg text-white/85">“Vendí mi Mustang en 9 días y sin intermediarios. Todo el proceso fue claro y seguro.”</p>
+        <p class="mt-2 font-condensed text-sm font-bold uppercase tracking-widest text-aqua">Carlos M. · Tegucigalpa</p>
+      </div>
+    </div>
+  </div>
+</Base>

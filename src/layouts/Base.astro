@@ -1,32 +1,76 @@
 ---
-
+import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+
 interface Props {
-	title: string;
+  title: string;
+  description?: string;
+  bare?: boolean;
+  bodyClass?: string;
 }
-
-const { title } = Astro.props;
+const {
+  title,
+  description = 'Automarket conecta a compradores y vendedores de vehículos en Honduras de forma rápida, segura y transparente.',
+  bare = false,
+  bodyClass = '',
+} = Astro.props;
+const fullTitle = title === 'Automarket' ? 'Automarket · Compra y vende vehículos en Honduras' : `${title} · Automarket`;
 ---
-
-
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="description" content="Astro description" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="generator" content={Astro.generator} />
-		<link href="./output.css" rel="stylesheet">
-		<title>{title}</title>
-	</head>
-	<body  class="">
-		
-		<Header/>
-			
-		<slot></slot>
-
-		<Footer/>
-	</body>
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#129FB1" />
+    <script is:inline>
+      try { if (localStorage.getItem('am.session')) document.documentElement.dataset.session = 'user'; } catch (e) {}
+    </script>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content="/img/brand/og.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&family=Roboto+Condensed:wght@300;400;700&family=Roboto:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class={`flex min-h-dvh flex-col ${bodyClass}`}>
+    {!bare && <Header />}
+    <main class="flex-1">
+      <slot />
+    </main>
+    {!bare && <Footer />}
+    <script>
+      import { favorites, toast } from '../lib/store';
+      // Botones de favorito en cualquier tarjeta o ficha (delegado).
+      document.addEventListener('click', (e) => {
+        const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-fav]');
+        if (!btn) return;
+        e.preventDefault();
+        const on = favorites.toggle(btn.dataset.fav!);
+        document.querySelectorAll<HTMLButtonElement>(`[data-fav="${btn.dataset.fav}"]`).forEach((b) => {
+          b.setAttribute('aria-pressed', String(on));
+          b.setAttribute('aria-label', on ? 'Quitar de favoritos' : 'Guardar en favoritos');
+          b.classList.toggle('text-fuchsia', on);
+          b.classList.toggle('text-ink', !on);
+          b.querySelector('svg')?.classList.toggle('fill-current', on);
+        });
+        toast(on ? 'Guardado en tus favoritos' : 'Eliminado de favoritos', on ? 'ok' : 'info');
+      });
+      // Marca los favoritos ya guardados en tarjetas renderizadas en el servidor.
+      const favs = new Set(favorites.all());
+      document.querySelectorAll<HTMLButtonElement>('[data-fav]').forEach((b) => {
+        if (!favs.has(b.dataset.fav!)) return;
+        b.setAttribute('aria-pressed', 'true');
+        b.classList.add('text-fuchsia');
+        b.classList.remove('text-ink');
+        b.querySelector('svg')?.classList.add('fill-current');
+      });
+    </script>
+  </body>
 </html>
-

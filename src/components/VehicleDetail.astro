@@ -1,0 +1,256 @@
+---
+import Icon from './Icon.astro';
+import { sellerById, vehicles, type Vehicle } from '../data/vehicles';
+import { money, km, ago, monthlyPayment } from '../lib/format';
+import { vehicleCard } from '../lib/cards';
+import type { IconName } from '../lib/icons';
+
+interface Props {
+  vehicle: Vehicle;
+}
+const { vehicle: v } = Astro.props;
+const seller = sellerById(v.sellerId);
+const title = `${v.brand} ${v.model}`;
+const fromMonthly = monthlyPayment(v.price * 0.8, 13.5, 60);
+
+const specs: [IconName, string, string, string][] = [
+  ['calendar', 'Año', String(v.year), 'year'],
+  ['gauge', 'Kilometraje', km(v.km), 'km'],
+  ['gearbox', 'Transmisión', v.transmission, 'transmission'],
+  ['fuel', 'Combustible', v.fuel, 'fuel'],
+  ['zap', 'Motor', v.engine, 'engine'],
+  ['settings', 'Tracción', v.drivetrain, 'drivetrain'],
+  ['tag', 'Color', v.color, 'color'],
+  ['users', 'Pasajeros', `${v.seats} asientos${v.doors ? ` · ${v.doors} puertas` : ''}`, 'seats'],
+];
+const similar = vehicles.filter((x) => x.id !== v.id && (x.type === v.type || Math.abs(x.price - v.price) < 300000)).slice(0, 3);
+const waText = encodeURIComponent(`Hola, vi el ${title} ${v.year} en Automarket y me interesa. ¿Sigue disponible?`);
+---
+<div class="border-b border-line bg-surface">
+  <nav aria-label="Ruta" class="container-am flex items-center gap-1 overflow-hidden py-3 text-xs text-muted">
+    <a href="/" class="hover:text-teal">Inicio</a><Icon name="chevron-right" class="size-3 shrink-0" />
+    <a href="/vehiculos/" class="hover:text-teal">Vehículos</a><Icon name="chevron-right" class="size-3 shrink-0" />
+    <a href={`/vehiculos/?tipo=${encodeURIComponent(v.type)}`} class="hover:text-teal" data-bind="type">{v.type}</a><Icon name="chevron-right" class="size-3 shrink-0" />
+    <span class="truncate" data-bind="title-year">{title} {v.year}</span>
+  </nav>
+</div>
+
+<div class="container-am grid gap-8 py-8 lg:grid-cols-[1fr_380px]">
+  <div class="min-w-0">
+    <!-- Galería -->
+    <div class="relative overflow-hidden rounded-3xl bg-surface">
+      <img data-bind-src src={v.image} alt={`${title} ${v.year}`} class="aspect-[3/2] w-full object-cover" fetchpriority="high" />
+      <div class="absolute left-4 top-4 flex flex-wrap gap-2" data-bind="badges">
+        {v.condition === 'Nuevo' && <span class="chip bg-teal text-white">0 km</span>}
+        {v.featured && <span class="chip bg-fuchsia text-white"><Icon name="sparkles" class="size-3" />Destacado</span>}
+        {v.status !== 'Disponible' && <span class="chip bg-white text-navy">{v.status}</span>}
+      </div>
+      <div class="absolute bottom-4 right-4 flex gap-2">
+        <button type="button" data-share class="grid size-10 place-items-center rounded-full bg-white/95 text-ink shadow hover:text-teal" aria-label="Compartir"><Icon name="share" class="size-[18px]" /></button>
+        <button type="button" data-fav={v.id} aria-pressed="false" class="grid size-10 place-items-center rounded-full bg-white/95 text-ink shadow" aria-label="Guardar en favoritos"><Icon name="heart" class="size-[18px]" /></button>
+      </div>
+    </div>
+
+    <!-- Encabezado (móvil) -->
+    <div class="mt-6 lg:hidden">
+      <h1 class="text-2xl font-bold" data-bind="title">{title}</h1>
+      <p class="text-muted" data-bind="subtitle">{v.version} · {v.year}</p>
+      <p class="mt-3 font-display text-3xl font-extrabold text-ink" data-bind="price">{money(v.price)}</p>
+    </div>
+
+    <!-- Especificaciones -->
+    <section class="mt-8" aria-labelledby="specs-title">
+      <h2 id="specs-title" class="text-xl font-bold">Especificaciones</h2>
+      <dl class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {specs.map(([icon, label, value, key]) => (
+          <div class="rounded-2xl border border-line p-4">
+            <dt class="flex items-center gap-1.5 text-xs text-muted"><Icon name={icon} class="size-4 text-teal" />{label}</dt>
+            <dd class="mt-1 text-sm font-medium text-ink" data-bind={key}>{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+
+    <section class="mt-8" aria-labelledby="desc-title">
+      <h2 id="desc-title" class="text-xl font-bold">Descripción</h2>
+      <p class="mt-3 leading-relaxed text-ink/90" data-bind="description">{v.description}</p>
+      <h3 class="mt-6 font-condensed text-base font-bold uppercase tracking-wider text-fuchsia">Equipamiento destacado</h3>
+      <ul class="mt-3 grid gap-2 sm:grid-cols-2" data-bind="features">
+        {v.features.map((f) => (
+          <li class="flex items-center gap-2 text-sm"><span class="grid size-5 place-items-center rounded-full bg-teal-50 text-teal"><Icon name="check" class="size-3" /></span>{f}</li>
+        ))}
+      </ul>
+    </section>
+
+    <!-- Financiamiento -->
+    <section class="card mt-8 p-6" aria-labelledby="fin-title" data-calc data-price={v.price}>
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h2 id="fin-title" class="flex items-center gap-2 text-xl font-bold"><Icon name="calculator" class="size-5 text-teal" />Calcula tu cuota</h2>
+          <p class="mt-1 text-sm text-muted">Estimación referencial. La tasa final depende de la institución financiera.</p>
+        </div>
+      </div>
+      <div class="mt-6 grid gap-6 md:grid-cols-2">
+        <div class="space-y-5">
+          <div>
+            <div class="flex justify-between"><label for="down" class="label">Prima</label><span class="text-sm font-medium" data-out="down">20%</span></div>
+            <input id="down" type="range" min="10" max="70" step="5" value="20" class="range" />
+          </div>
+          <div>
+            <label for="term" class="label">Plazo</label>
+            <select id="term" class="input">
+              {[12, 24, 36, 48, 60, 72, 84].map((m) => <option value={m} selected={m === 60}>{m} meses ({m / 12} {m === 12 ? 'año' : 'años'})</option>)}
+            </select>
+          </div>
+          <div>
+            <div class="flex justify-between"><label for="rate" class="label">Tasa anual</label><span class="text-sm font-medium" data-out="rate">13.5%</span></div>
+            <input id="rate" type="range" min="8" max="24" step="0.5" value="13.5" class="range" />
+          </div>
+        </div>
+        <div class="flex flex-col justify-between rounded-2xl bg-teal-gradient p-5 text-white">
+          <div>
+            <p class="font-condensed text-sm uppercase tracking-widest text-white/75">Cuota mensual estimada</p>
+            <p class="mt-1 font-display text-4xl font-extrabold" data-out="monthly">{money(fromMonthly)}</p>
+          </div>
+          <dl class="mt-6 space-y-2 text-sm">
+            <div class="flex justify-between"><dt class="text-white/75">Prima</dt><dd data-out="downAmount">{money(v.price * 0.2)}</dd></div>
+            <div class="flex justify-between"><dt class="text-white/75">Monto a financiar</dt><dd data-out="financed">{money(v.price * 0.8)}</dd></div>
+            <div class="flex justify-between border-t border-white/20 pt-2"><dt class="text-white/75">Total a pagar</dt><dd class="font-bold" data-out="total">{money(fromMonthly * 60 + v.price * 0.2)}</dd></div>
+          </dl>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Columna lateral -->
+  <aside class="space-y-5 lg:sticky lg:top-24 lg:self-start">
+    <div class="card p-6">
+      <div class="hidden lg:block">
+        <p class="font-condensed text-xs font-bold uppercase tracking-widest text-muted" data-bind="posted">Publicado {ago(v.postedDaysAgo).toLowerCase()} · {v.views.toLocaleString('es-HN')} vistas</p>
+        <h1 class="mt-2 text-2xl font-bold leading-tight" data-bind="title">{title}</h1>
+        <p class="text-muted" data-bind="subtitle">{v.version} · {v.year}</p>
+        <p class="mt-4 font-display text-3xl font-extrabold text-ink" data-bind="price">{money(v.price)}</p>
+        <p class="mt-1 text-sm text-muted">o desde <strong class="text-teal" data-bind="monthly">{money(fromMonthly)}/mes</strong></p>
+      </div>
+      <div class="mt-5 grid gap-2 lg:mt-6">
+        <a href={`https://wa.me/${seller.phone.replace(/\D/g, '')}?text=${waText}`} target="_blank" rel="noopener" class="btn bg-[#25D366] py-3 text-white hover:brightness-95"><Icon name="chat" class="size-4" />Escribir por WhatsApp</a>
+        <a href={`tel:${seller.phone.replace(/\s/g, '')}`} class="btn-ghost py-3" data-phone><Icon name="phone" class="size-4" /><span>Ver teléfono</span></a>
+      </div>
+
+      <form data-contact class="mt-5 space-y-3 border-t border-line pt-5" novalidate>
+        <p class="font-display font-bold text-navy">Enviar consulta</p>
+        <div>
+          <label for="c-name" class="sr-only">Nombre</label>
+          <input id="c-name" name="name" class="input" placeholder="Tu nombre" required autocomplete="name" />
+          <p class="field-error">Escribe tu nombre.</p>
+        </div>
+        <div>
+          <label for="c-phone" class="sr-only">Teléfono</label>
+          <input id="c-phone" name="phone" class="input" placeholder="Teléfono (ej. 9876-5432)" required inputmode="tel" autocomplete="tel" pattern="[0-9+\-\s]{8,}" />
+          <p class="field-error">Ingresa un teléfono válido de 8 dígitos.</p>
+        </div>
+        <div>
+          <label for="c-msg" class="sr-only">Mensaje</label>
+          <textarea id="c-msg" name="message" rows="3" class="input resize-none">{`Hola, me interesa el ${title} ${v.year}. ¿Sigue disponible?`}</textarea>
+        </div>
+        <label class="flex items-center gap-2 text-xs text-muted"><input type="checkbox" name="testdrive" class="check" />Quiero agendar una prueba de manejo</label>
+        <button class="btn-primary w-full py-3">Enviar consulta</button>
+      </form>
+    </div>
+
+    <div class="card p-5" data-seller>
+      <div class="flex items-center gap-3">
+        <span class="grid size-12 shrink-0 place-items-center rounded-full bg-navy font-display font-bold text-white">{seller.name.split(' ').map((p) => p[0]).slice(0, 2).join('')}</span>
+        <div class="min-w-0">
+          <p class="flex items-center gap-1 truncate font-display font-bold text-navy">{seller.name}{seller.verified && <Icon name="badge" class="size-4 shrink-0 text-teal" label="Verificado" />}</p>
+          <p class="text-xs text-muted">{seller.kind} · {seller.city}</p>
+        </div>
+      </div>
+      <dl class="mt-4 grid grid-cols-3 gap-2 text-center">
+        <div class="rounded-xl bg-surface p-2"><dt class="text-[11px] text-muted">Calificación</dt><dd class="flex items-center justify-center gap-1 font-bold"><Icon name="star" class="size-3.5 fill-amber-400 text-amber-400" />{seller.rating}</dd></div>
+        <div class="rounded-xl bg-surface p-2"><dt class="text-[11px] text-muted">Anuncios</dt><dd class="font-bold">{seller.listings}</dd></div>
+        <div class="rounded-xl bg-surface p-2"><dt class="text-[11px] text-muted">Responde</dt><dd class="font-bold">~15 min</dd></div>
+      </dl>
+    </div>
+
+    <div class="rounded-2xl border border-navy/10 bg-navy-50 p-5 text-sm">
+      <p class="flex items-center gap-2 font-display font-bold text-navy"><Icon name="shield" class="size-4" />Compra con seguridad</p>
+      <ul class="mt-2 list-disc space-y-1 pl-5 text-ink/80">
+        <li>Revisa el vehículo en persona o con un mecánico.</li>
+        <li>Verifica documentos en el Instituto de la Propiedad.</li>
+        <li>Nunca hagas pagos por adelantado sin ver el vehículo.</li>
+      </ul>
+    </div>
+  </aside>
+</div>
+
+{similar.length > 0 && (
+  <section class="container-am pb-16" data-similar>
+    <h2 class="text-2xl font-bold"><strong>Vehículos</strong> <span class="font-normal">similares</span></h2>
+    <div class="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3" set:html={similar.map((x) => vehicleCard(x)).join('')} />
+  </section>
+)}
+
+<script>
+  import { monthlyPayment, money } from '../lib/format';
+  import { inquiries, toast } from '../lib/store';
+
+  // Calculadora
+  const calc = document.querySelector<HTMLElement>('[data-calc]');
+  if (calc) {
+    const down = calc.querySelector<HTMLInputElement>('#down')!;
+    const term = calc.querySelector<HTMLSelectElement>('#term')!;
+    const rate = calc.querySelector<HTMLInputElement>('#rate')!;
+    const out = (k: string, v: string) => calc.querySelectorAll(`[data-out="${k}"]`).forEach((el) => (el.textContent = v));
+    const update = () => {
+      const price = Number(calc.dataset.price);
+      const d = (price * Number(down.value)) / 100;
+      const m = monthlyPayment(price - d, Number(rate.value), Number(term.value));
+      out('down', `${down.value}%`);
+      out('rate', `${rate.value}%`);
+      out('monthly', money(m));
+      out('downAmount', money(d));
+      out('financed', money(price - d));
+      out('total', money(m * Number(term.value) + d));
+      [down, rate].forEach((r) => r.style.setProperty('--fill', `${((Number(r.value) - Number(r.min)) / (Number(r.max) - Number(r.min))) * 100}%`));
+    };
+    [down, term, rate].forEach((el) => el.addEventListener('input', update));
+    update();
+  }
+
+  // Teléfono oculto hasta hacer clic
+  document.querySelector<HTMLAnchorElement>('[data-phone]')?.addEventListener('click', function (e) {
+    const span = this.querySelector('span')!;
+    if (span.textContent === 'Ver teléfono') {
+      e.preventDefault();
+      span.textContent = this.getAttribute('href')!.replace('tel:', '').replace(/(\+504)(\d{4})(\d{4})/, '$1 $2-$3');
+    }
+  });
+
+  // Compartir
+  document.querySelector('[data-share]')?.addEventListener('click', async () => {
+    const data = { title: document.title, url: location.href };
+    try {
+      if (navigator.share) await navigator.share(data);
+      else { await navigator.clipboard.writeText(location.href); toast('Enlace copiado al portapapeles', 'info'); }
+    } catch { /* cancelado */ }
+  });
+
+  // Formulario de contacto
+  const form = document.querySelector<HTMLFormElement>('[data-contact]');
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    let ok = true;
+    form.querySelectorAll<HTMLInputElement>('input[required]').forEach((input) => {
+      const valid = input.checkValidity() && input.value.replace(/\D/g, '').length >= (input.name === 'phone' ? 8 : 0) && input.value.trim() !== '';
+      input.setAttribute('aria-invalid', String(!valid));
+      input.nextElementSibling?.classList.toggle('is-visible', !valid);
+      if (!valid) ok = false;
+    });
+    if (!ok) return;
+    const fd = new FormData(form);
+    inquiries.add({ vehicleId: location.pathname, name: String(fd.get('name')), phone: String(fd.get('phone')), message: String(fd.get('message')) });
+    form.innerHTML = `<div class="rounded-xl bg-teal-50 p-4 text-center"><p class="font-display font-bold text-teal-deep">¡Consulta enviada!</p><p class="mt-1 text-sm text-ink/80">El vendedor te contactará pronto al ${String(fd.get('phone')).replace(/</g, '')}.</p></div>`;
+    toast('Tu consulta fue enviada al vendedor');
+  });
+</script>

@@ -1,0 +1,187 @@
+---
+import Panel from '../../layouts/Panel.astro';
+import Icon from '../../components/Icon.astro';
+
+const statuses = ['Todos', 'Disponible', 'En negociación', 'Disponible para permuta', 'Vendido', 'Borrador'];
+---
+<Panel title="Inventario" heading="Inventario" subtitle="Administra el estado y la visibilidad de tus vehículos">
+  <a slot="actions" href="/panel/publicar/" class="btn-accent hidden sm:inline-flex"><Icon name="plus" class="size-4" />Publicar</a>
+
+  <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div class="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0" role="tablist" aria-label="Filtrar por estado">
+      {statuses.map((s, i) => (
+        <button type="button" role="tab" data-status={s} aria-selected={i === 0 ? 'true' : 'false'} class="flex shrink-0 items-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-sm transition aria-selected:border-navy aria-selected:bg-navy aria-selected:text-white">
+          {s === 'Disponible para permuta' ? 'Permuta' : s}<span data-status-count={s} class="rounded-full bg-black/5 px-1.5 text-xs">0</span>
+        </button>
+      ))}
+    </div>
+    <div class="relative lg:w-72">
+      <Icon name="search" class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
+      <input type="search" data-search class="input pl-9" placeholder="Buscar en mi inventario" aria-label="Buscar en mi inventario" />
+    </div>
+  </div>
+
+  <!-- Tabla (escritorio) -->
+  <div class="card mt-5 hidden overflow-hidden md:block">
+    <table class="w-full text-sm">
+      <thead class="border-b border-line bg-surface text-left font-condensed text-xs font-bold uppercase tracking-wider text-muted">
+        <tr>
+          <th scope="col" class="px-5 py-3">Vehículo</th>
+          <th scope="col" class="px-3 py-3">Precio</th>
+          <th scope="col" class="px-3 py-3">Estado</th>
+          <th scope="col" class="px-3 py-3">Publicado</th>
+          <th scope="col" class="hidden px-3 py-3 xl:table-cell">Rendimiento</th>
+          <th scope="col" class="px-5 py-3 text-right"><span class="sr-only">Acciones</span></th>
+        </tr>
+      </thead>
+      <tbody data-rows class="divide-y divide-line"></tbody>
+    </table>
+  </div>
+
+  <!-- Tarjetas (móvil) -->
+  <div data-cards class="mt-5 grid grid-cols-1 gap-3 md:hidden"></div>
+
+  <div data-empty class="card mt-5 hidden flex-col items-center px-6 py-14 text-center">
+    <span class="grid size-12 place-items-center rounded-full bg-teal-50 text-teal"><Icon name="car" /></span>
+    <p class="mt-3 font-display font-bold text-navy">No hay vehículos en esta vista</p>
+    <a href="/panel/publicar/" class="btn-primary mt-4"><Icon name="plus" class="size-4" />Publicar vehículo</a>
+  </div>
+
+  <dialog data-confirm class="m-auto w-[min(92vw,420px)] rounded-2xl p-0 shadow-2xl backdrop:bg-navy-deep/50">
+    <form method="dialog" class="p-6">
+      <span class="grid size-11 place-items-center rounded-full bg-fuchsia-50 text-fuchsia"><Icon name="trash" /></span>
+      <h2 class="mt-4 text-lg font-bold">¿Eliminar esta publicación?</h2>
+      <p class="mt-1 text-sm text-muted"><span data-confirm-name></span> se eliminará de tu inventario y del catálogo. Esta acción no se puede deshacer.</p>
+      <div class="mt-6 flex justify-end gap-2">
+        <button value="cancel" class="btn-ghost">Cancelar</button>
+        <button value="ok" class="btn bg-fuchsia-deep text-white hover:bg-fuchsia">Eliminar</button>
+      </div>
+    </form>
+  </dialog>
+</Panel>
+
+<script>
+  import { inventory, toast, type InventoryItem } from '../../lib/store';
+  import type { ListingStatus } from '../../data/vehicles';
+  import { money, number } from '../../lib/format';
+  import { iconSvg } from '../../lib/icons';
+  import { vehicleHref } from '../../lib/cards';
+
+  const STATUSES: ListingStatus[] = ['Disponible', 'En negociación', 'Disponible para permuta', 'Vendido', 'Borrador'];
+  const tone: Record<string, string> = {
+    Disponible: 'text-teal-deep bg-teal-50 border-teal/20',
+    'En negociación': 'text-amber-700 bg-amber-50 border-amber-200',
+    'Disponible para permuta': 'text-navy bg-navy-50 border-navy/15',
+    Vendido: 'text-fuchsia-deep bg-fuchsia-50 border-fuchsia/20',
+    Borrador: 'text-gray-600 bg-gray-100 border-gray-200',
+  };
+  let filter = new URLSearchParams(location.search).get('estado') ?? 'Todos';
+  let query = '';
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
+  const statusSelect = (v: InventoryItem) =>
+    `<select data-action="status" data-id="${v.id}" aria-label="Estado de ${esc(v.brand)} ${esc(v.model)}" class="max-w-full rounded-full border py-1 pl-3 pr-8 text-xs font-bold font-condensed focus:outline-none focus:ring-2 focus:ring-teal ${tone[v.status]}">
+      ${STATUSES.map((s) => `<option ${s === v.status ? 'selected' : ''}>${s}</option>`).join('')}
+    </select>`;
+  const toggle = (v: InventoryItem) =>
+    `<button type="button" role="switch" aria-checked="${v.published}" data-action="publish" data-id="${v.id}" aria-label="Publicado" class="relative h-6 w-11 rounded-full transition ${v.published ? 'bg-teal' : 'bg-gray-300'}">
+      <span class="absolute top-0.5 size-5 rounded-full bg-white shadow transition-all ${v.published ? 'left-[22px]' : 'left-0.5'}"></span></button>`;
+  const actions = (v: InventoryItem) => `<div class="flex justify-end gap-1">
+      <a href="${vehicleHref(v)}" class="grid size-8 place-items-center rounded-lg text-muted hover:bg-surface hover:text-teal" aria-label="Ver publicación">${iconSvg('eye', 'size-4')}</a>
+      <a href="/panel/publicar/?id=${encodeURIComponent(v.id)}" class="grid size-8 place-items-center rounded-lg text-muted hover:bg-surface hover:text-teal" aria-label="Editar">${iconSvg('pencil', 'size-4')}</a>
+      <button type="button" data-action="delete" data-id="${v.id}" class="grid size-8 place-items-center rounded-lg text-muted hover:bg-fuchsia-50 hover:text-fuchsia" aria-label="Eliminar">${iconSvg('trash', 'size-4')}</button>
+    </div>`;
+
+  function render() {
+    const all = inventory.all();
+    document.querySelectorAll<HTMLElement>('[data-status-count]').forEach((el) => {
+      const s = el.dataset.statusCount!;
+      el.textContent = String(s === 'Todos' ? all.length : all.filter((v) => v.status === s).length);
+    });
+    document.querySelectorAll<HTMLElement>('[data-status]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.status === filter)));
+    const q = query.toLowerCase();
+    const list = all
+      .filter((v) => filter === 'Todos' || v.status === filter)
+      .filter((v) => !q || `${v.brand} ${v.model} ${v.version} ${v.year}`.toLowerCase().includes(q));
+
+    document.querySelector('[data-rows]')!.innerHTML = list
+      .map(
+        (v) => `<tr class="${v.published ? '' : 'bg-surface/60'}">
+        <td class="px-5 py-3"><div class="flex items-center gap-3">
+          <img src="${esc(v.image)}" alt="" class="h-12 w-[72px] shrink-0 rounded-lg object-cover ${v.status === 'Vendido' ? 'grayscale' : ''}" />
+          <div class="min-w-0"><p class="truncate font-medium">${esc(v.brand)} ${esc(v.model)} ${v.year}</p><p class="truncate text-xs text-muted">${esc(v.version)} · ${number(v.km)} km${v.featured ? ' · <span class="text-fuchsia">Destacado</span>' : ''}</p></div>
+        </div></td>
+        <td class="whitespace-nowrap px-3 py-3 font-medium">${money(v.price)}</td>
+        <td class="px-3 py-3">${statusSelect(v)}</td>
+        <td class="px-3 py-3">${toggle(v)}</td>
+        <td class="hidden px-3 py-3 text-xs text-muted xl:table-cell"><span class="inline-flex items-center gap-1">${iconSvg('eye', 'size-3.5')}${number(v.views)}</span> <span class="ml-3 inline-flex items-center gap-1">${iconSvg('chat', 'size-3.5')}${v.leads}</span></td>
+        <td class="px-5 py-3">${actions(v)}</td>
+      </tr>`,
+      )
+      .join('');
+
+    document.querySelector('[data-cards]')!.innerHTML = list
+      .map(
+        (v) => `<div class="card p-3">
+        <div class="flex gap-3">
+          <img src="${esc(v.image)}" alt="" class="h-20 w-24 shrink-0 rounded-lg object-cover ${v.status === 'Vendido' ? 'grayscale' : ''}" />
+          <div class="min-w-0 flex-1">
+            <p class="truncate font-medium">${esc(v.brand)} ${esc(v.model)} ${v.year}</p>
+            <p class="text-sm font-bold">${money(v.price)}</p>
+            <p class="mt-1 text-xs text-muted">${number(v.views)} vistas · ${v.leads} consultas</p>
+          </div>
+        </div>
+        <div class="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3">
+          ${statusSelect(v)}
+          <div class="flex items-center gap-2">${toggle(v)}${actions(v)}</div>
+        </div>
+      </div>`,
+      )
+      .join('');
+
+    const empty = document.querySelector<HTMLElement>('[data-empty]')!;
+    empty.classList.toggle('hidden', list.length > 0);
+    empty.classList.toggle('flex', list.length === 0);
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-status]').forEach((b) => b.addEventListener('click', () => { filter = b.dataset.status!; render(); }));
+  document.querySelector<HTMLInputElement>('[data-search]')!.addEventListener('input', (e) => { query = (e.target as HTMLInputElement).value; render(); });
+
+  const dialog = document.querySelector<HTMLDialogElement>('[data-confirm]')!;
+  let pendingDelete = '';
+  dialog.addEventListener('close', () => {
+    if (dialog.returnValue === 'ok' && pendingDelete) {
+      inventory.remove(pendingDelete);
+      toast('Publicación eliminada', 'warn');
+      render();
+    }
+  });
+
+  document.addEventListener('change', (e) => {
+    const el = e.target as HTMLSelectElement;
+    if (el.dataset.action !== 'status') return;
+    const status = el.value as ListingStatus;
+    inventory.patch(el.dataset.id!, { status, ...(status === 'Borrador' ? { published: false } : {}) });
+    toast(status === 'Vendido' ? '¡Felicidades por la venta! Marcado como vendido' : `Estado actualizado: ${status}`);
+    render();
+  });
+  document.addEventListener('click', (e) => {
+    const el = (e.target as HTMLElement).closest<HTMLElement>('[data-action]');
+    if (!el || el.tagName === 'SELECT') return;
+    const v = inventory.get(el.dataset.id!);
+    if (!v) return;
+    if (el.dataset.action === 'publish') {
+      const published = !v.published;
+      inventory.patch(v.id, { published, ...(published && v.status === 'Borrador' ? { status: 'Disponible' as ListingStatus } : {}) });
+      toast(published ? 'Publicación visible en el catálogo' : 'Publicación oculta del catálogo', published ? 'ok' : 'info');
+      render();
+    }
+    if (el.dataset.action === 'delete') {
+      pendingDelete = v.id;
+      dialog.querySelector('[data-confirm-name]')!.textContent = `${v.brand} ${v.model} ${v.year}`;
+      dialog.showModal();
+    }
+  });
+
+  render();
+</script>

@@ -1,0 +1,154 @@
+---
+import Panel from '../../layouts/Panel.astro';
+import Icon from '../../components/Icon.astro';
+
+const weeks = [
+  ['S1', 1820], ['S2', 2140], ['S3', 1960], ['S4', 2580], ['S5', 2410], ['S6', 3020], ['S7', 2870], ['S8', 3390],
+] as const;
+const maxW = Math.max(...weeks.map(([, n]) => n));
+const leads = [
+  { name: 'María Fernanda López', car: 'Toyota Camry 2020', msg: '¿Aceptan carro como parte de pago?', when: 'Hace 12 min', channel: 'WhatsApp' },
+  { name: 'José Antonio Reyes', car: 'Ford Expedition 2020', msg: 'Me interesa agendar una prueba de manejo el sábado.', when: 'Hace 1 h', channel: 'Formulario' },
+  { name: 'Karla Martínez', car: 'BMW M4 2019', msg: '¿Cuál es el último precio?', when: 'Hace 3 h', channel: 'WhatsApp' },
+  { name: 'Luis Ernesto Paz', car: 'Porsche 911 GT3 2019', msg: '¿Tiene historial de mantenimiento?', when: 'Ayer', channel: 'Llamada' },
+];
+---
+<Panel title="Panel de vendedor" heading="Resumen" subtitle="Así va tu negocio esta semana">
+  <a slot="actions" href="/panel/publicar/" class="btn-accent hidden sm:inline-flex"><Icon name="plus" class="size-4" />Publicar</a>
+
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <p class="text-sm text-muted" data-today></p>
+      <p class="mt-1 font-display text-2xl font-bold text-navy">Hola, <span data-first>vendedor</span> 👋</p>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="mt-6 grid grid-cols-2 gap-4 xl:grid-cols-4">
+    {[
+      ['active', 'Publicaciones activas', 'car', 'bg-teal-50 text-teal', '+2 este mes'],
+      ['views', 'Vistas totales', 'eye', 'bg-navy-50 text-navy', '+18% vs. mes anterior'],
+      ['leads', 'Consultas recibidas', 'chat', 'bg-fuchsia-50 text-fuchsia', '+9% vs. mes anterior'],
+      ['sold', 'Vendidos', 'badge', 'bg-amber-50 text-amber-600', 'L 455,000 en ventas'],
+    ].map(([key, label, icon, color, delta]) => (
+      <div class="card p-5">
+        <div class="flex items-start justify-between">
+          <p class="text-sm text-muted">{label}</p>
+          <span class:list={['grid size-9 place-items-center rounded-lg', color]}><Icon name={icon as 'car'} class="size-[18px]" /></span>
+        </div>
+        <p class="mt-2 font-display text-3xl font-extrabold text-ink" data-kpi={key}>—</p>
+        <p class="mt-1 flex items-center gap-1 text-xs text-teal-deep"><Icon name="trending" class="size-3.5" />{delta}</p>
+      </div>
+    ))}
+  </div>
+
+  <div class="mt-6 grid gap-6 xl:grid-cols-[1.6fr_1fr]">
+    <!-- Gráfico -->
+    <section class="card p-6" aria-labelledby="chart-title">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 id="chart-title" class="font-display text-lg font-bold">Vistas por semana</h2>
+          <p class="text-xs text-muted">Últimas 8 semanas · todas tus publicaciones</p>
+        </div>
+        <a href="/panel/reportes/" class="text-sm font-medium text-teal hover:underline">Ver reportes</a>
+      </div>
+      <div class="mt-6 flex h-56 items-end gap-3" role="img" aria-label="Gráfico de barras de vistas por semana, con tendencia al alza de 1,820 a 3,390">
+        {weeks.map(([label, n], i) => (
+          <div class="group flex h-full flex-1 flex-col items-center justify-end gap-2">
+            <span class="text-[11px] font-medium text-muted opacity-0 transition group-hover:opacity-100">{n.toLocaleString('es-HN')}</span>
+            <div class:list={['w-full rounded-t-lg transition group-hover:opacity-90', i === weeks.length - 1 ? 'bg-fuchsia' : 'bg-teal-gradient']} style={`height:${(n / maxW) * 85}%`}></div>
+            <span class="text-xs text-muted">{label}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Consultas -->
+    <section class="card p-6" aria-labelledby="leads-title">
+      <div class="flex items-center justify-between">
+        <h2 id="leads-title" class="font-display text-lg font-bold">Consultas recientes</h2>
+        <span class="chip bg-fuchsia-50 text-fuchsia-deep">3 nuevas</span>
+      </div>
+      <ul class="mt-4 divide-y divide-line" data-leads>
+        {leads.map((l, i) => (
+          <li class="flex gap-3 py-3">
+            <span class:list={['grid size-9 shrink-0 place-items-center rounded-full text-xs font-bold', i < 3 ? 'bg-teal text-white' : 'bg-surface text-muted']}>{l.name.split(' ').map((p) => p[0]).slice(0, 2).join('')}</span>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between gap-2">
+                <p class="truncate text-sm font-medium">{l.name}</p>
+                <span class="shrink-0 text-[11px] text-muted">{l.when}</span>
+              </div>
+              <p class="truncate text-xs text-teal-deep">{l.car} · {l.channel}</p>
+              <p class="mt-0.5 line-clamp-1 text-sm text-muted">{l.msg}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  </div>
+
+  <div class="mt-6 grid gap-6 xl:grid-cols-[1.6fr_1fr]">
+    <section class="card overflow-hidden" aria-labelledby="top-title">
+      <div class="flex items-center justify-between p-6 pb-3">
+        <h2 id="top-title" class="font-display text-lg font-bold">Publicaciones con más interés</h2>
+        <a href="/panel/inventario/" class="text-sm font-medium text-teal hover:underline">Ver inventario</a>
+      </div>
+      <ul class="divide-y divide-line" data-top></ul>
+    </section>
+
+    <section class="space-y-4">
+      <div class="relative overflow-hidden rounded-2xl bg-brand-gradient p-6 text-white">
+        <div class="absolute inset-y-0 right-0 w-1/2 stripe-band opacity-20" aria-hidden="true"></div>
+        <p class="relative font-condensed text-xs font-bold uppercase tracking-widest text-aqua">Consejo</p>
+        <p class="relative mt-2 font-display text-lg font-bold">Destaca el Toyota Camry</p>
+        <p class="relative mt-1 text-sm text-white/80">Tiene 23 consultas: destacarlo 7 días puede triplicar su alcance.</p>
+        <button type="button" data-highlight class="btn-white relative mt-4">Destacar ahora</button>
+      </div>
+      <div class="card p-5">
+        <p class="font-display font-bold text-navy">Acciones rápidas</p>
+        <div class="mt-3 grid grid-cols-2 gap-2">
+          <a href="/panel/publicar/" class="flex flex-col items-start gap-2 rounded-xl border border-line p-3 text-sm hover:border-teal"><Icon name="plus" class="size-4 text-teal" />Publicar</a>
+          <a href="/panel/compartir/" class="flex flex-col items-start gap-2 rounded-xl border border-line p-3 text-sm hover:border-teal"><Icon name="share" class="size-4 text-teal" />Compartir</a>
+          <a href="/panel/reportes/" class="flex flex-col items-start gap-2 rounded-xl border border-line p-3 text-sm hover:border-teal"><Icon name="chart" class="size-4 text-teal" />Reportes</a>
+          <a href="/panel/inventario/?estado=En%20negociaci%C3%B3n" class="flex flex-col items-start gap-2 rounded-xl border border-line p-3 text-sm hover:border-teal"><Icon name="clock" class="size-4 text-teal" />En negociación</a>
+        </div>
+      </div>
+    </section>
+  </div>
+</Panel>
+
+<script>
+  import { inventory, session, toast } from '../../lib/store';
+  import { number, money } from '../../lib/format';
+  import { statusChip } from '../../lib/cards';
+
+  const user = session.get();
+  document.querySelector('[data-first]')!.textContent = user?.name.split(' ')[0] ?? 'vendedor';
+  document.querySelector('[data-today]')!.textContent = new Date().toLocaleDateString('es-HN', { weekday: 'long', day: 'numeric', month: 'long' }).replace(/^\w/, (c) => c.toUpperCase());
+
+  const items = inventory.all();
+  const kpi = (k: string, v: string) => (document.querySelector(`[data-kpi="${k}"]`)!.textContent = v);
+  kpi('active', String(items.filter((v) => v.published && v.status !== 'Vendido').length));
+  kpi('views', number(items.reduce((s, v) => s + v.views, 0)));
+  kpi('leads', number(items.reduce((s, v) => s + v.leads, 0)));
+  kpi('sold', String(items.filter((v) => v.status === 'Vendido').length));
+
+  const top = [...items].filter((v) => v.status !== 'Vendido').sort((a, b) => b.leads - a.leads).slice(0, 4);
+  document.querySelector('[data-top]')!.innerHTML = top
+    .map(
+      (v) => `<li class="flex items-center gap-4 px-6 py-3">
+        <img src="${v.image}" alt="" class="h-12 w-16 shrink-0 rounded-lg object-cover" />
+        <div class="min-w-0 flex-1"><p class="truncate text-sm font-medium">${v.brand} ${v.model} ${v.year}</p><p class="text-xs text-muted">${money(v.price)}</p></div>
+        <div class="hidden sm:block">${statusChip(v.status)}</div>
+        <div class="w-20 text-right text-sm"><p class="font-bold">${number(v.leads)}</p><p class="text-[11px] text-muted">consultas</p></div>
+      </li>`,
+    )
+    .join('');
+
+  document.querySelector('[data-highlight]')!.addEventListener('click', (e) => {
+    inventory.patch('toyota-camry-se-2020', { featured: true });
+    (e.currentTarget as HTMLButtonElement).textContent = 'Destacado por 7 días ✓';
+    (e.currentTarget as HTMLButtonElement).disabled = true;
+    toast('Toyota Camry destacado por 7 días');
+  });
+</script>

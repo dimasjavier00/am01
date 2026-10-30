@@ -1,0 +1,64 @@
+---
+// Ficha para publicaciones creadas desde el panel (guardadas en el navegador).
+import Base from '../../layouts/Base.astro';
+import VehicleDetail from '../../components/VehicleDetail.astro';
+import { vehicles } from '../../data/vehicles';
+---
+<Base title="Vehículo publicado">
+  <div data-detail class="invisible">
+    <VehicleDetail vehicle={vehicles[0]} />
+  </div>
+  <div data-missing class="container-am hidden py-24 text-center">
+    <h1 class="text-2xl font-bold">Esta publicación ya no está disponible</h1>
+    <p class="mt-2 text-muted">Es posible que el vendedor la haya retirado o marcado como vendida.</p>
+    <a href="/vehiculos/" class="btn-primary mt-6">Ver otros vehículos</a>
+  </div>
+</Base>
+
+<script>
+  import { inventory } from '../../lib/store';
+  import { money, km } from '../../lib/format';
+
+  const id = new URLSearchParams(location.search).get('id') ?? '';
+  const v = inventory.get(id);
+  const root = document.querySelector<HTMLElement>('[data-detail]')!;
+  if (!v) {
+    root.remove();
+    document.querySelector('[data-missing]')!.classList.remove('hidden');
+  } else {
+    const title = `${v.brand} ${v.model}`;
+    document.title = `${title} ${v.year} · Automarket`;
+    const set = (key: string, text: string) => root.querySelectorAll(`[data-bind="${key}"]`).forEach((el) => (el.textContent = text));
+    set('title', title);
+    set('title-year', `${title} ${v.year}`);
+    set('type', v.type);
+    set('subtitle', `${v.version} · ${v.year}`);
+    set('price', money(v.price));
+    set('year', String(v.year));
+    set('km', km(v.km));
+    set('transmission', v.transmission);
+    set('fuel', v.fuel);
+    set('engine', v.engine || '—');
+    set('drivetrain', v.drivetrain || '—');
+    set('color', v.color);
+    set('seats', `${v.seats} asientos · ${v.doors} puertas`);
+    set('description', v.description || 'Sin descripción.');
+    set('posted', 'Publicado hoy · Vista previa de tu anuncio');
+    root.querySelectorAll<HTMLImageElement>('[data-bind-src]').forEach((img) => { img.src = v.image; img.alt = title; });
+    root.querySelectorAll('[data-bind="badges"]').forEach((el) => (el.innerHTML = '<span class="chip bg-navy text-white">Tu publicación</span>'));
+    const feats = root.querySelector('[data-bind="features"]')!;
+    feats.innerHTML = '';
+    v.features.forEach((f) => {
+      const li = document.createElement('li');
+      li.className = 'flex items-center gap-2 text-sm';
+      li.innerHTML = '<span class="grid size-5 place-items-center rounded-full bg-teal-50 text-teal">✓</span><span></span>';
+      li.lastElementChild!.textContent = f;
+      feats.appendChild(li);
+    });
+    const calc = root.querySelector<HTMLElement>('[data-calc]');
+    if (calc) { calc.dataset.price = String(v.price); calc.querySelector('#down')!.dispatchEvent(new Event('input')); }
+    root.querySelector('[data-seller]')?.remove();
+    root.querySelectorAll('[data-fav]').forEach((b) => b.setAttribute('data-fav', v.id));
+    root.classList.remove('invisible');
+  }
+</script>

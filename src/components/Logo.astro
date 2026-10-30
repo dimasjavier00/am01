@@ -1,0 +1,9 @@
+---
+interface Props {
+  variant?: 'color' | 'white';
+  class?: string;
+}
+const { variant = 'color', class: className = 'h-6 w-auto' } = Astro.props;
+const src = variant === 'white' ? '/img/brand/logo-white.png' : '/img/brand/logo.png';
+---
+<img src={src} alt="Automarket" width="903" height="98" class={className} decoding="async" />

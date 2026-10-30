@@ -1,0 +1,110 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import { plans, comparison, faqs } from '../data/plans';
+import { number } from '../lib/format';
+---
+<Base title="Planes y precios" description="Publica gratis o elige un plan Profesional o Concesionario para destacar tu inventario en Automarket.">
+  <section class="relative overflow-hidden bg-brand-gradient pb-40 pt-14 text-center text-white">
+    <div class="absolute inset-0 stripe-band opacity-10" aria-hidden="true"></div>
+    <div class="container-am relative">
+      <p class="font-condensed text-sm font-bold uppercase tracking-[0.18em] text-aqua">Planes y precios</p>
+      <h1 class="mx-auto mt-3 max-w-3xl text-4xl font-normal text-white sm:text-5xl"><strong class="font-extrabold">Vende más rápido</strong> con el plan ideal para ti</h1>
+      <p class="mx-auto mt-4 max-w-xl text-white/80">Sin comisiones por venta. Cambia o cancela cuando quieras.</p>
+      <div class="mx-auto mt-8 inline-flex items-center gap-1 rounded-full bg-white/10 p-1 text-sm ring-1 ring-white/20" role="group" aria-label="Periodo de facturación">
+        <button type="button" data-period="monthly" aria-pressed="true" class="rounded-full px-5 py-2 font-medium aria-pressed:bg-white aria-pressed:text-navy">Mensual</button>
+        <button type="button" data-period="yearly" aria-pressed="false" class="flex items-center gap-2 rounded-full px-5 py-2 font-medium aria-pressed:bg-white aria-pressed:text-navy">Anual <span class="rounded-full bg-aqua px-2 py-0.5 text-[11px] font-bold text-navy-deep">−20%</span></button>
+      </div>
+    </div>
+  </section>
+
+  <section class="container-am relative -mt-28">
+    <div class="grid gap-6 lg:grid-cols-3">
+      {plans.map((p) => (
+        <article class:list={['relative flex flex-col rounded-3xl border bg-white p-7', p.highlight ? 'border-fuchsia shadow-lift lg:-mt-4 lg:mb-4' : 'border-line shadow-card']}>
+          {p.highlight && <span class="absolute -top-3 left-7 chip bg-fuchsia px-3 py-1 text-white">Más elegido</span>}
+          <h2 class="text-xl font-bold">{p.id}</h2>
+          <p class="mt-1 text-sm text-muted">{p.tagline}</p>
+          <p class="mt-6 flex items-baseline gap-1">
+            {p.monthly === 0 ? (
+              <span class="font-display text-4xl font-extrabold text-ink">Gratis</span>
+            ) : (
+              <>
+                <span class="font-display text-4xl font-extrabold text-ink" data-price data-monthly={p.monthly}>L {number(p.monthly)}</span>
+                <span class="text-sm text-muted">/mes</span>
+              </>
+            )}
+          </p>
+          <p class="h-5 text-xs text-teal" data-yearly-note>{p.monthly > 0 ? '' : 'Para siempre'}</p>
+          <p class="mt-4 rounded-xl bg-surface px-3 py-2 text-sm font-medium"><Icon name="car" class="mr-1 inline size-4 text-teal" />{p.listings}</p>
+          <ul class="mt-6 flex-1 space-y-3 text-sm">
+            {p.features.map((f) => (
+              <li class="flex gap-2"><Icon name="check" class="mt-0.5 size-4 shrink-0 text-teal" />{f}</li>
+            ))}
+          </ul>
+          <a href={p.id === 'Concesionario' ? 'mailto:ventas@automarket.hn' : `/registro/?plan=${encodeURIComponent(p.id)}`} class:list={['mt-8 py-3', p.highlight ? 'btn-accent' : 'btn-ghost']}>{p.cta}</a>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="container-am py-20">
+    <h2 class="text-center text-3xl font-bold"><strong>Compara</strong> <span class="font-normal">los planes</span></h2>
+    <div class="mt-8 overflow-x-auto rounded-2xl border border-line">
+      <table class="w-full min-w-[640px] text-sm">
+        <thead class="bg-surface text-left">
+          <tr>
+            <th scope="col" class="p-4 font-condensed font-bold">Característica</th>
+            {plans.map((p) => <th scope="col" class:list={['p-4 text-center font-display font-bold', p.highlight ? 'text-fuchsia' : 'text-navy']}>{p.id}</th>)}
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-line">
+          {comparison.map(([label, ...cells]) => (
+            <tr>
+              <th scope="row" class="p-4 text-left font-normal">{label}</th>
+              {cells.map((c) => (
+                <td class="p-4 text-center">
+                  {c === true ? <Icon name="check" class="mx-auto size-5 text-teal" label="Incluido" /> : c === false ? <span class="text-gray-300" aria-label="No incluido">—</span> : c}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="bg-surface py-20">
+    <div class="container-am max-w-3xl">
+      <h2 class="text-center text-3xl font-bold"><strong>Preguntas</strong> <span class="font-normal">frecuentes</span></h2>
+      <div class="mt-8 space-y-3">
+        {faqs.map(([q, a], i) => (
+          <details class="group card p-5 open:shadow-lift" open={i === 0}>
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-display font-bold text-navy">
+              {q}
+              <Icon name="chevron-down" class="size-5 shrink-0 text-teal transition group-open:rotate-180" />
+            </summary>
+            <p class="mt-3 text-sm leading-relaxed text-muted">{a}</p>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  import { number } from '../lib/format';
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-period]');
+  buttons.forEach((b) =>
+    b.addEventListener('click', () => {
+      const yearly = b.dataset.period === 'yearly';
+      buttons.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      document.querySelectorAll<HTMLElement>('[data-price]').forEach((el) => {
+        const m = Number(el.dataset.monthly);
+        el.textContent = `L ${number(yearly ? Math.round(m * 0.8) : m)}`;
+        const note = el.closest('article')!.querySelector<HTMLElement>('[data-yearly-note]')!;
+        note.textContent = yearly ? `L ${number(Math.round(m * 0.8 * 12))} facturado al año` : '';
+      });
+    }),
+  );
+</script>
